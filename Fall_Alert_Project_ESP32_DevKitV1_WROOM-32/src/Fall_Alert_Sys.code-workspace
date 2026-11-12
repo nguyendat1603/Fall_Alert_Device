@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"name": "Fall_Alert_Project",
+			"path": "../../Fall_Alert_Project"
+		},
+		{
+			"name": "Fall_Alert_Project_ESP32_DevKitV1_WROOM-32",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
