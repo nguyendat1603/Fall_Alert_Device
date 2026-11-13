@@ -43,6 +43,8 @@ void setup() {
 }
 
 void loop() {
+    float max_smv = 0.0; // Lưu đỉnh gia tốc va chạm lớn nhất trong 2 giây
+
     // 1. Thu thập đủ 1 cửa sổ 2 giây dữ liệu 6 trục từ MPU6050
     for (size_t ix = 0; ix < EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE; ix += 6) {
         uint64_t next_tick = millis() + INTERVAL_MS;
@@ -50,10 +52,21 @@ void loop() {
         sensors_event_t a, g, temp;
         mpu.getEvent(&a, &g, &temp);
 
+        float ax = a.acceleration.x;
+        float ay = a.acceleration.y;
+        float az = a.acceleration.z;
+
+        // Tính tổng hợp lực gia tốc SMV = sqrt(ax^2 + ay^2 + az^2)
+        // Bình thường đứng yên hoặc nằm im trên bàn: SMV ~ 9.8 m/s^2 (1g)
+        float smv = sqrt(ax * ax + ay * ay + az * az);
+        if (smv > max_smv) {
+            max_smv = smv;
+        }
+
         // Lưu theo đúng thứ tự 6 trục lúc train trên Edge Impulse
-        features[ix + 0] = a.acceleration.x;
-        features[ix + 1] = a.acceleration.y;
-        features[ix + 2] = a.acceleration.z;
+        features[ix + 0] = ax;
+        features[ix + 1] = ay;
+        features[ix + 2] = az;
         features[ix + 3] = g.gyro.x;
         features[ix + 4] = g.gyro.y;
         features[ix + 5] = g.gyro.z;
@@ -89,14 +102,18 @@ void loop() {
         }
     }
 
-    Serial.printf("[Dự đoán] Bình thường: %5.1f%%  |  TÉ NGÃ: %5.1f%%  (Thời gian AI tính: %d ms)\n", 
-                  adl_score * 100, fall_score * 100, result.timing.classification);
+    // Điều kiện té ngã thực sự: AI báo Fall > 80% VÀ có lực va chạm (max_smv > 16.0 m/s^2, tức > 1.6g)
+    bool is_real_fall = (fall_score > 0.80) && (max_smv > 16.0);
 
-    // 5. CẢNH BÁO: Nếu xác suất ngã > 80% -> Kích hoạt còi kêu 3 tiếng bíp!
-    if (fall_score > 0.80) {
-        Serial.println("\n**************************************");
-        Serial.println(">>> CẢNH BÁO: ĐÃ PHÁT HIỆN TÉ NGÃ! <<<");
-        Serial.println("**************************************\n");
+    Serial.printf("[AI] ADL: %5.1f%% | FALL: %5.1f%% | Lực đỉnh: %4.1f m/s2 -> Trạng thái: %s\n", 
+                  adl_score * 100, fall_score * 100, max_smv,
+                  is_real_fall ? "TÉ NGÃ THẬT!" : "Bình thường");
+
+    // 5. CẢNH BÁO: Chỉ hú còi khi có cả va chạm + tư thế ngã
+    if (is_real_fall) {
+        Serial.println("\n***************************************************");
+        Serial.println(">>> CẢNH BÁO: PHÁT HIỆN VA CHẠM & TÉ NGÃ! <<<");
+        Serial.println("***************************************************\n");
         
         for (int i = 0; i < 3; i++) {
             digitalWrite(BUZZER_PIN, HIGH);
