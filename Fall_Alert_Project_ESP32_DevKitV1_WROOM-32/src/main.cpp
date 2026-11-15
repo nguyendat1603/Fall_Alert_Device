@@ -15,12 +15,24 @@ Adafruit_MPU6050 mpu;
 // Mảng đệm chứa 2 giây dữ liệu (100 mẫu x 6 trục = 600 phần tử float)
 static float features[EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE];
 
+// Module Buzzer 3 chân (VCC, I/O, GND) dùng Transistor PNP kích mức THẤP (Active-LOW):
+// - Bật còi: Kéo chân I/O xuống LOW (0V)
+// - Tắt còi: Đưa chân I/O về HIGH và thả nổi ngõ vào (INPUT High-Z) để ngắt hẳn dòng Base dù cấp nguồn 3.3V hay 5V
+void buzzerOn() {
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
+}
+
+void buzzerOff() {
+    digitalWrite(BUZZER_PIN, HIGH);
+    pinMode(BUZZER_PIN, INPUT);
+}
+
 void setup() {
     Serial.begin(115200);
     delay(1000);
 
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(BUZZER_PIN, LOW);
+    buzzerOff(); // Tắt còi ngay khi khởi động
 
     // ESP32 DevKit V1: SDA = 21, SCL = 22
     Wire.begin(21, 22);
@@ -116,9 +128,9 @@ void loop() {
         Serial.println("***************************************************\n");
         
         for (int i = 0; i < 3; i++) {
-            digitalWrite(BUZZER_PIN, HIGH);
+            buzzerOn();
             delay(150);
-            digitalWrite(BUZZER_PIN, LOW);
+            buzzerOff();
             delay(100);
         }
     }
