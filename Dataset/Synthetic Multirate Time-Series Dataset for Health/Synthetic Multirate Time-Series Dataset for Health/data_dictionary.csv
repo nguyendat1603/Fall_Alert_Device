@@ -1,0 +1,208 @@
+table,column,dtype,description,unit,level,allowed_values_or_range,missingness_definition,nullable_in_release,observed_missing_cells
+synthetic_elderly_monitoring_timeseries.parquet,subject_id,object,Synthetic participant identifier; stable across all events for one participant.,not_applicable,subject,S0000–S0119,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,event_id,object,Unique synthetic event identifier composed of subject and event number.,not_applicable,event,S####_E###,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,split,object,Subject-level allocation assigned before event generation.,not_applicable,subject,"train, validation, test",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,sampling_hz,int64,Sampling frequency determined by the selected sensor profile.,Hz,event,"20, 100, or 200",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,sensor_profile,object,"Named literature-informed device, placement, and sampling profile.",not_applicable,subject,one of seven profiles in sensor_profiles.csv,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,device_type,object,Generic wearable device category associated with the sensor profile.,not_applicable,subject,"smartphone, smartwatch, waist_imu, chest_imu",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,placement,object,Body or carried-device location associated with the sensor profile.,not_applicable,subject,"waist, wrist, chest, pocket",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,activity_type,object,Generated activity-of-daily-living or fall scenario.,not_applicable,event,scenario library defined in the notebook,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,health_condition,object,Generated physiological condition applied during the event.,not_applicable,event,"normal, borderline_fever, borderline_hypoxia, hypertension_episode, hypotension_episode",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,sensor_degradation,object,Deliberate post-generation sensor-quality mode.,not_applicable,event,"none, noise, dropout, quantized, drift",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,is_challenge,int64,"Indicator that an event contains a fall, hard negative, non-normal condition, or sensor degradation.",not_applicable,event,0 or 1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,hard_negative_adl,int64,Indicator for a fall-like activity-of-daily-living event that is labelled non-fall.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,fall_severity,float64,Continuous latent fall-severity parameter used by the motion generator.,arbitrary latent scale,event,0–1 for falls,structurally missing for non-falls,True,316800
+synthetic_elderly_monitoring_timeseries.parquet,fall_detected,int64,Binary event-level fall ground truth from the scenario class.,not_applicable,event,0 non-fall; 1 fall,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,health_risk_probability,float64,Latent event-level probability produced by the documented risk equation.,probability,event,0–1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,health_risk_level,object,Categorical risk band derived deterministically from health_risk_probability.,not_applicable,event,"Low, Moderate, High",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,health_risk_binary,int64,Binary elevated-risk benchmark target obtained from the documented probability threshold.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,health_outcome_observed,int64,Separate Bernoulli realization from health_risk_probability; not the benchmark target.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,joint_state,object,Combined deterministic health-risk and fall state.,not_applicable,event,four states defined by FIXED_JOINT_STATE,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,generation_version,object,Version of the synthetic generator that produced the record.,not_applicable,release,3.1.0,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,parent_article_doi,object,DOI of the parent Data in Brief article used for dataset lineage.,not_applicable,release,10.1016/j.dib.2026.112641,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,parent_dataset_doi,object,DOI of the declared Version-2 parent dataset snapshot.,not_applicable,release,10.17632/tf56mbyg69.2,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,parent_snapshot_sha256,object,SHA-256 fingerprint recorded for the frozen Version-2 parent snapshot.,not_applicable,release,8d2a0c8f8869779d5e7996940ba6218030daa5ac6376a08c55bd5407fbc5ea7e,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,motion_reference,object,Literature source family used to motivate the motion profile.,not_applicable,subject,reference key in sensor_profiles.csv,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,physiology_reference,object,Literature source key used to motivate physiological ranges.,not_applicable,release,Chester_Rudolph_2011,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,realism_reference,object,Literature source key used to motivate real-like versus simulated fall overlap.,not_applicable,release,Casilari_Silva_real_vs_simulated,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,sample_index,int64,Zero-based sample number within one event.,index,sample,0 to n_samples−1,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,time_from_event_start_s,float64,Elapsed time from the beginning of the event.,s,sample,0 to <4 s,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,timestamp_utc,"datetime64[ns, UTC]","Synthetic UTC timestamp formed from subject day, event offset, and sample time.",UTC datetime,sample,ISO-8601 timestamp,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,event_phase,object,Generator phase assigned to the sample.,not_applicable,sample,"pre-event, transition/descent, peak/impact, recovery/post-event",not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,acc_x_g,float64,Acceleration on the x axis.,g,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,acc_y_g,float64,Acceleration on the y axis.,g,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,acc_z_g,float64,Acceleration on the z axis.,g,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,acc_magnitude_g,float64,Euclidean magnitude of the three acceleration axes.,g,sample,0–20,missing when dropout makes the component axes missing,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,gyro_x_dps,float64,Angular velocity on the x axis.,degrees/s,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,gyro_y_dps,float64,Angular velocity on the y axis.,degrees/s,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,gyro_z_dps,float64,Angular velocity on the z axis.,degrees/s,sample,configured physical range,missing only in deliberate dropout intervals,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,gyro_magnitude_dps,float64,Euclidean magnitude of the three angular-velocity axes.,degrees/s,sample,0–2500,missing when dropout makes the component axes missing,True,2540
+synthetic_elderly_monitoring_timeseries.parquet,heart_rate_bpm,float64,Generated heart rate during the event.,beats/min,sample,40–180,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,spo2_pct,float64,Generated peripheral oxygen saturation.,%,sample,75–100,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,temperature_c,float64,Generated body temperature.,°C,sample,34.5–40.5,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,hrv_ms,float64,Generated heart-rate-variability measure.,ms,sample,3–100,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,respiratory_rate_bpm,float64,Generated respiratory rate.,breaths/min,sample,6–40,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,systolic_bp_mmhg,float64,Generated systolic blood pressure.,mmHg,sample,70–220,not expected,False,0
+synthetic_elderly_monitoring_timeseries.parquet,diastolic_bp_mmhg,float64,Generated diastolic blood pressure.,mmHg,sample,35–140,not expected,False,0
+synthetic_subjects.csv,subject_id,object,Synthetic participant identifier; stable across all events for one participant.,not_applicable,subject,S0000–S0119,not expected,False,0
+synthetic_subjects.csv,split,object,Subject-level allocation assigned before event generation.,not_applicable,subject,"train, validation, test",not expected,False,0
+synthetic_subjects.csv,age,int64,Synthetic participant age.,years,subject,65–95,not expected,False,0
+synthetic_subjects.csv,sex,object,Synthetic binary sex category used by the generator.,not_applicable,subject,Female or Male,not expected,False,0
+synthetic_subjects.csv,diabetes,int64,Synthetic diabetes indicator.,not_applicable,subject,0 or 1,not expected,False,0
+synthetic_subjects.csv,hypertension,int64,Synthetic hypertension indicator.,not_applicable,subject,0 or 1,not expected,False,0
+synthetic_subjects.csv,copd,int64,Synthetic chronic obstructive pulmonary disease indicator.,not_applicable,subject,0 or 1,not expected,False,0
+synthetic_subjects.csv,parkinsons,int64,Synthetic Parkinson’s disease indicator.,not_applicable,subject,0 or 1,not expected,False,0
+synthetic_subjects.csv,frailty,int64,Synthetic frailty indicator.,not_applicable,subject,0 or 1,not expected,False,0
+synthetic_subjects.csv,sensor_profile,object,"Named literature-informed device, placement, and sampling profile.",not_applicable,subject,one of seven profiles in sensor_profiles.csv,not expected,False,0
+synthetic_subjects.csv,device_type,object,Generic wearable device category associated with the sensor profile.,not_applicable,subject,"smartphone, smartwatch, waist_imu, chest_imu",not expected,False,0
+synthetic_subjects.csv,placement,object,Body or carried-device location associated with the sensor profile.,not_applicable,subject,"waist, wrist, chest, pocket",not expected,False,0
+synthetic_subjects.csv,sampling_hz,int64,Sampling frequency determined by the selected sensor profile.,Hz,event,"20, 100, or 200",not expected,False,0
+synthetic_subjects.csv,motion_reference,object,Literature source family used to motivate the motion profile.,not_applicable,subject,reference key in sensor_profiles.csv,not expected,False,0
+synthetic_subjects.csv,baseline_heart_rate,float64,Fixed subject-level baseline heart rate used by the event generator.,beats/min,subject,52–105,not expected,False,0
+synthetic_subjects.csv,baseline_spo2,float64,Fixed subject-level baseline peripheral oxygen saturation used by the event generator.,%,subject,88–100,not expected,False,0
+synthetic_subjects.csv,baseline_temperature,float64,Fixed subject-level baseline body temperature used by the event generator.,°C,subject,35.7–37.2,not expected,False,0
+synthetic_subjects.csv,baseline_hrv,float64,Fixed subject-level baseline heart-rate-variability value used by the event generator.,ms,subject,8–65,not expected,False,0
+synthetic_subjects.csv,baseline_respiratory_rate,float64,Fixed subject-level baseline respiratory rate used by the event generator.,breaths/min,subject,9–26,not expected,False,0
+synthetic_subjects.csv,baseline_systolic_bp,float64,Fixed subject-level baseline systolic blood pressure used by the event generator.,mmHg,subject,90–190,not expected,False,0
+synthetic_subjects.csv,baseline_diastolic_bp,float64,Fixed subject-level baseline diastolic blood pressure used by the event generator.,mmHg,subject,50–115,not expected,False,0
+synthetic_event_metadata.csv,subject_id,object,Synthetic participant identifier; stable across all events for one participant.,not_applicable,subject,S0000–S0119,not expected,False,0
+synthetic_event_metadata.csv,event_id,object,Unique synthetic event identifier composed of subject and event number.,not_applicable,event,S####_E###,not expected,False,0
+synthetic_event_metadata.csv,split,object,Subject-level allocation assigned before event generation.,not_applicable,subject,"train, validation, test",not expected,False,0
+synthetic_event_metadata.csv,sampling_hz,int64,Sampling frequency determined by the selected sensor profile.,Hz,event,"20, 100, or 200",not expected,False,0
+synthetic_event_metadata.csv,sensor_profile,object,"Named literature-informed device, placement, and sampling profile.",not_applicable,subject,one of seven profiles in sensor_profiles.csv,not expected,False,0
+synthetic_event_metadata.csv,activity_type,object,Generated activity-of-daily-living or fall scenario.,not_applicable,event,scenario library defined in the notebook,not expected,False,0
+synthetic_event_metadata.csv,health_condition,object,Generated physiological condition applied during the event.,not_applicable,event,"normal, borderline_fever, borderline_hypoxia, hypertension_episode, hypotension_episode",not expected,False,0
+synthetic_event_metadata.csv,sensor_degradation,object,Deliberate post-generation sensor-quality mode.,not_applicable,event,"none, noise, dropout, quantized, drift",not expected,False,0
+synthetic_event_metadata.csv,is_challenge,int64,"Indicator that an event contains a fall, hard negative, non-normal condition, or sensor degradation.",not_applicable,event,0 or 1,not expected,False,0
+synthetic_event_metadata.csv,hard_negative_adl,int64,Indicator for a fall-like activity-of-daily-living event that is labelled non-fall.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_event_metadata.csv,fall_severity,float64,Continuous latent fall-severity parameter used by the motion generator.,arbitrary latent scale,event,0–1 for falls,structurally missing for non-falls,True,836
+synthetic_event_metadata.csv,fall_detected,int64,Binary event-level fall ground truth from the scenario class.,not_applicable,event,0 non-fall; 1 fall,not expected,False,0
+synthetic_event_metadata.csv,health_risk_probability,float64,Latent event-level probability produced by the documented risk equation.,probability,event,0–1,not expected,False,0
+synthetic_event_metadata.csv,health_risk_level,object,Categorical risk band derived deterministically from health_risk_probability.,not_applicable,event,"Low, Moderate, High",not expected,False,0
+synthetic_event_metadata.csv,health_risk_binary,int64,Binary elevated-risk benchmark target obtained from the documented probability threshold.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_event_metadata.csv,health_outcome_observed,int64,Separate Bernoulli realization from health_risk_probability; not the benchmark target.,not_applicable,event,0 or 1,not expected,False,0
+synthetic_event_metadata.csv,joint_state,object,Combined deterministic health-risk and fall state.,not_applicable,event,four states defined by FIXED_JOINT_STATE,not expected,False,0
+synthetic_event_metadata.csv,parent_article_doi,object,DOI of the parent Data in Brief article used for dataset lineage.,not_applicable,release,10.1016/j.dib.2026.112641,not expected,False,0
+synthetic_event_metadata.csv,parent_dataset_doi,object,DOI of the declared Version-2 parent dataset snapshot.,not_applicable,release,10.17632/tf56mbyg69.2,not expected,False,0
+synthetic_event_metadata.csv,parent_snapshot_sha256,object,SHA-256 fingerprint recorded for the frozen Version-2 parent snapshot.,not_applicable,release,8d2a0c8f8869779d5e7996940ba6218030daa5ac6376a08c55bd5407fbc5ea7e,not expected,False,0
+synthetic_event_metadata.csv,n_samples,int64,Number of sample rows in the event.,count,event,sampling_hz × 4 seconds,not expected,False,0
+synthetic_event_metadata.csv,clean_peak_acc_g,float64,Peak acceleration magnitude before deliberate sensor degradation.,g,event,non-negative,not expected,False,0
+event_features.csv,subject_id,object,Synthetic participant identifier; stable across all events for one participant.,not_applicable,subject,S0000–S0119,not expected,False,0
+event_features.csv,event_id,object,Unique synthetic event identifier composed of subject and event number.,not_applicable,event,S####_E###,not expected,False,0
+event_features.csv,split,object,Subject-level allocation assigned before event generation.,not_applicable,subject,"train, validation, test",not expected,False,0
+event_features.csv,sampling_hz,int64,Sampling frequency determined by the selected sensor profile.,Hz,event,"20, 100, or 200",not expected,False,0
+event_features.csv,sensor_profile,object,"Named literature-informed device, placement, and sampling profile.",not_applicable,subject,one of seven profiles in sensor_profiles.csv,not expected,False,0
+event_features.csv,activity_type,object,Generated activity-of-daily-living or fall scenario.,not_applicable,event,scenario library defined in the notebook,not expected,False,0
+event_features.csv,health_condition,object,Generated physiological condition applied during the event.,not_applicable,event,"normal, borderline_fever, borderline_hypoxia, hypertension_episode, hypotension_episode",not expected,False,0
+event_features.csv,sensor_degradation,object,Deliberate post-generation sensor-quality mode.,not_applicable,event,"none, noise, dropout, quantized, drift",not expected,False,0
+event_features.csv,is_challenge,int64,"Indicator that an event contains a fall, hard negative, non-normal condition, or sensor degradation.",not_applicable,event,0 or 1,not expected,False,0
+event_features.csv,hard_negative_adl,int64,Indicator for a fall-like activity-of-daily-living event that is labelled non-fall.,not_applicable,event,0 or 1,not expected,False,0
+event_features.csv,fall_severity,float64,Continuous latent fall-severity parameter used by the motion generator.,arbitrary latent scale,event,0–1 for falls,structurally missing for non-falls,True,836
+event_features.csv,fall_detected,int64,Binary event-level fall ground truth from the scenario class.,not_applicable,event,0 non-fall; 1 fall,not expected,False,0
+event_features.csv,health_risk_probability,float64,Latent event-level probability produced by the documented risk equation.,probability,event,0–1,not expected,False,0
+event_features.csv,health_risk_level,object,Categorical risk band derived deterministically from health_risk_probability.,not_applicable,event,"Low, Moderate, High",not expected,False,0
+event_features.csv,health_risk_binary,int64,Binary elevated-risk benchmark target obtained from the documented probability threshold.,not_applicable,event,0 or 1,not expected,False,0
+event_features.csv,health_outcome_observed,int64,Separate Bernoulli realization from health_risk_probability; not the benchmark target.,not_applicable,event,0 or 1,not expected,False,0
+event_features.csv,joint_state,object,Combined deterministic health-risk and fall state.,not_applicable,event,four states defined by FIXED_JOINT_STATE,not expected,False,0
+event_features.csv,parent_article_doi,object,DOI of the parent Data in Brief article used for dataset lineage.,not_applicable,release,10.1016/j.dib.2026.112641,not expected,False,0
+event_features.csv,parent_dataset_doi,object,DOI of the declared Version-2 parent dataset snapshot.,not_applicable,release,10.17632/tf56mbyg69.2,not expected,False,0
+event_features.csv,parent_snapshot_sha256,object,SHA-256 fingerprint recorded for the frozen Version-2 parent snapshot.,not_applicable,release,8d2a0c8f8869779d5e7996940ba6218030daa5ac6376a08c55bd5407fbc5ea7e,not expected,False,0
+event_features.csv,n_samples,int64,Number of sample rows in the event.,count,event,sampling_hz × 4 seconds,not expected,False,0
+event_features.csv,clean_peak_acc_g,float64,Peak acceleration magnitude before deliberate sensor degradation.,g,event,non-negative,not expected,False,0
+event_features.csv,acc_x_g_mean,float64,Event-level arithmetic mean of Acceleration on the x axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_x_g_std,float64,Event-level sample standard deviation of Acceleration on the x axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_x_g_min,float64,Event-level minimum of Acceleration on the x axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_x_g_max,float64,Event-level maximum of Acceleration on the x axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_x_g_median,float64,Event-level median of Acceleration on the x axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_y_g_mean,float64,Event-level arithmetic mean of Acceleration on the y axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_y_g_std,float64,Event-level sample standard deviation of Acceleration on the y axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_y_g_min,float64,Event-level minimum of Acceleration on the y axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_y_g_max,float64,Event-level maximum of Acceleration on the y axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_y_g_median,float64,Event-level median of Acceleration on the y axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_z_g_mean,float64,Event-level arithmetic mean of Acceleration on the z axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_z_g_std,float64,Event-level sample standard deviation of Acceleration on the z axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_z_g_min,float64,Event-level minimum of Acceleration on the z axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_z_g_max,float64,Event-level maximum of Acceleration on the z axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_z_g_median,float64,Event-level median of Acceleration on the z axis.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_magnitude_g_mean,float64,Event-level arithmetic mean of Euclidean magnitude of the three acceleration axes.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_magnitude_g_std,float64,Event-level sample standard deviation of Euclidean magnitude of the three acceleration axes.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_magnitude_g_min,float64,Event-level minimum of Euclidean magnitude of the three acceleration axes.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_magnitude_g_max,float64,Event-level maximum of Euclidean magnitude of the three acceleration axes.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,acc_magnitude_g_median,float64,Event-level median of Euclidean magnitude of the three acceleration axes.,g,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_x_dps_mean,float64,Event-level arithmetic mean of Angular velocity on the x axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_x_dps_std,float64,Event-level sample standard deviation of Angular velocity on the x axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_x_dps_min,float64,Event-level minimum of Angular velocity on the x axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_x_dps_max,float64,Event-level maximum of Angular velocity on the x axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_x_dps_median,float64,Event-level median of Angular velocity on the x axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_y_dps_mean,float64,Event-level arithmetic mean of Angular velocity on the y axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_y_dps_std,float64,Event-level sample standard deviation of Angular velocity on the y axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_y_dps_min,float64,Event-level minimum of Angular velocity on the y axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_y_dps_max,float64,Event-level maximum of Angular velocity on the y axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_y_dps_median,float64,Event-level median of Angular velocity on the y axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_z_dps_mean,float64,Event-level arithmetic mean of Angular velocity on the z axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_z_dps_std,float64,Event-level sample standard deviation of Angular velocity on the z axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_z_dps_min,float64,Event-level minimum of Angular velocity on the z axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_z_dps_max,float64,Event-level maximum of Angular velocity on the z axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_z_dps_median,float64,Event-level median of Angular velocity on the z axis.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_magnitude_dps_mean,float64,Event-level arithmetic mean of Euclidean magnitude of the three angular-velocity axes.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_magnitude_dps_std,float64,Event-level sample standard deviation of Euclidean magnitude of the three angular-velocity axes.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_magnitude_dps_min,float64,Event-level minimum of Euclidean magnitude of the three angular-velocity axes.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_magnitude_dps_max,float64,Event-level maximum of Euclidean magnitude of the three angular-velocity axes.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,gyro_magnitude_dps_median,float64,Event-level median of Euclidean magnitude of the three angular-velocity axes.,degrees/s,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,heart_rate_bpm_mean,float64,Event-level arithmetic mean of Generated heart rate during the event.,beats/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,heart_rate_bpm_std,float64,Event-level sample standard deviation of Generated heart rate during the event.,beats/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,heart_rate_bpm_min,float64,Event-level minimum of Generated heart rate during the event.,beats/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,heart_rate_bpm_max,float64,Event-level maximum of Generated heart rate during the event.,beats/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,heart_rate_bpm_median,float64,Event-level median of Generated heart rate during the event.,beats/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,spo2_pct_mean,float64,Event-level arithmetic mean of Generated peripheral oxygen saturation.,%,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,spo2_pct_std,float64,Event-level sample standard deviation of Generated peripheral oxygen saturation.,%,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,spo2_pct_min,float64,Event-level minimum of Generated peripheral oxygen saturation.,%,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,spo2_pct_max,float64,Event-level maximum of Generated peripheral oxygen saturation.,%,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,spo2_pct_median,float64,Event-level median of Generated peripheral oxygen saturation.,%,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,temperature_c_mean,float64,Event-level arithmetic mean of Generated body temperature.,°C,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,temperature_c_std,float64,Event-level sample standard deviation of Generated body temperature.,°C,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,temperature_c_min,float64,Event-level minimum of Generated body temperature.,°C,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,temperature_c_max,float64,Event-level maximum of Generated body temperature.,°C,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,temperature_c_median,float64,Event-level median of Generated body temperature.,°C,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,hrv_ms_mean,float64,Event-level arithmetic mean of Generated heart-rate-variability measure.,ms,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,hrv_ms_std,float64,Event-level sample standard deviation of Generated heart-rate-variability measure.,ms,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,hrv_ms_min,float64,Event-level minimum of Generated heart-rate-variability measure.,ms,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,hrv_ms_max,float64,Event-level maximum of Generated heart-rate-variability measure.,ms,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,hrv_ms_median,float64,Event-level median of Generated heart-rate-variability measure.,ms,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,respiratory_rate_bpm_mean,float64,Event-level arithmetic mean of Generated respiratory rate.,breaths/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,respiratory_rate_bpm_std,float64,Event-level sample standard deviation of Generated respiratory rate.,breaths/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,respiratory_rate_bpm_min,float64,Event-level minimum of Generated respiratory rate.,breaths/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,respiratory_rate_bpm_max,float64,Event-level maximum of Generated respiratory rate.,breaths/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,respiratory_rate_bpm_median,float64,Event-level median of Generated respiratory rate.,breaths/min,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,systolic_bp_mmhg_mean,float64,Event-level arithmetic mean of Generated systolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,systolic_bp_mmhg_std,float64,Event-level sample standard deviation of Generated systolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,systolic_bp_mmhg_min,float64,Event-level minimum of Generated systolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,systolic_bp_mmhg_max,float64,Event-level maximum of Generated systolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,systolic_bp_mmhg_median,float64,Event-level median of Generated systolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,diastolic_bp_mmhg_mean,float64,Event-level arithmetic mean of Generated diastolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,diastolic_bp_mmhg_std,float64,Event-level sample standard deviation of Generated diastolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,diastolic_bp_mmhg_min,float64,Event-level minimum of Generated diastolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,diastolic_bp_mmhg_max,float64,Event-level maximum of Generated diastolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,diastolic_bp_mmhg_median,float64,Event-level median of Generated diastolic blood pressure.,mmHg,event,numeric summary of available samples,missing only if no usable sample exists for the event,False,0
+event_features.csv,age,int64,Synthetic participant age.,years,subject,65–95,not expected,False,0
+event_features.csv,sex,object,Synthetic binary sex category used by the generator.,not_applicable,subject,Female or Male,not expected,False,0
+event_features.csv,diabetes,int64,Synthetic diabetes indicator.,not_applicable,subject,0 or 1,not expected,False,0
+event_features.csv,hypertension,int64,Synthetic hypertension indicator.,not_applicable,subject,0 or 1,not expected,False,0
+event_features.csv,copd,int64,Synthetic chronic obstructive pulmonary disease indicator.,not_applicable,subject,0 or 1,not expected,False,0
+event_features.csv,parkinsons,int64,Synthetic Parkinson’s disease indicator.,not_applicable,subject,0 or 1,not expected,False,0
+event_features.csv,frailty,int64,Synthetic frailty indicator.,not_applicable,subject,0 or 1,not expected,False,0
+event_features.csv,device_type,object,Generic wearable device category associated with the sensor profile.,not_applicable,subject,"smartphone, smartwatch, waist_imu, chest_imu",not expected,False,0
+event_features.csv,placement,object,Body or carried-device location associated with the sensor profile.,not_applicable,subject,"waist, wrist, chest, pocket",not expected,False,0
+event_features.csv,age_band,category,Age category derived from age for descriptive subgroup analysis.,not_applicable,subject,"65–74, 75–84, 85+",not expected,False,0
+internal_heldout_predictions.csv,subject_id,object,Synthetic participant identifier; stable across all events for one participant.,not_applicable,subject,S0000–S0119,not expected,False,0
+internal_heldout_predictions.csv,event_id,object,Unique synthetic event identifier composed of subject and event number.,not_applicable,event,S####_E###,not expected,False,0
+internal_heldout_predictions.csv,sex,object,Synthetic binary sex category used by the generator.,not_applicable,subject,Female or Male,not expected,False,0
+internal_heldout_predictions.csv,age_band,category,Age category derived from age for descriptive subgroup analysis.,not_applicable,subject,"65–74, 75–84, 85+",not expected,False,0
+internal_heldout_predictions.csv,sensor_profile,object,"Named literature-informed device, placement, and sampling profile.",not_applicable,subject,one of seven profiles in sensor_profiles.csv,not expected,False,0
+internal_heldout_predictions.csv,sensor_degradation,object,Deliberate post-generation sensor-quality mode.,not_applicable,event,"none, noise, dropout, quantized, drift",not expected,False,0
+internal_heldout_predictions.csv,is_challenge,int64,"Indicator that an event contains a fall, hard negative, non-normal condition, or sensor degradation.",not_applicable,event,0 or 1,not expected,False,0
+internal_heldout_predictions.csv,hard_negative_adl,int64,Indicator for a fall-like activity-of-daily-living event that is labelled non-fall.,not_applicable,event,0 or 1,not expected,False,0
+internal_heldout_predictions.csv,y_true,int64,Observed binary benchmark label for the named task.,not_applicable,event,0 or 1,not expected,False,0
+internal_heldout_predictions.csv,task,object,Prediction task represented by the row.,not_applicable,event,fall or health_risk,not expected,False,0
+internal_heldout_predictions.csv,model,object,Fitted benchmark model that produced the probability.,not_applicable,event,LogisticRegression or RandomForest,not expected,False,0
+internal_heldout_predictions.csv,probability,float64,Held-out model probability for y_true=1.,probability,event,0–1,not expected,False,0
