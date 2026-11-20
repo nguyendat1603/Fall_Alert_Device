@@ -14,13 +14,30 @@ class MainScreenTest {
 
   @Before
   fun setup() {
-    composeTestRule.setContent { MainScreen(FAKE_DATA) }
+    composeTestRule.setContent {
+      FallGuardGlacierContent(
+        state = FallGuardUiState(),
+        onSelectTab = {},
+        onSimulateScenario = {},
+        onCancelFallAlarm = {},
+        onCallEmergencySos = {},
+        onSwitchWaveform = {},
+        onSelectHistoryFilter = {},
+        onResetHistoryFilter = {},
+        onSmvThresholdChange = {},
+        onSelectCountdownOption = {},
+        onToggleDualLayer = {},
+        onToggleAutoCall115 = {},
+        onToggleAttachGps = {},
+        onTriggerBuzzerTest = {},
+        onSaveConfig = {},
+        onShowToast = {}
+      )
+    }
   }
 
   @Test
-  fun firstItem_exists() {
-    FAKE_DATA.forEach { composeTestRule.onNodeWithText("Hello $it!").assertExists() }
+  fun appTitle_exists() {
+    composeTestRule.onNodeWithText("FallGuard").assertExists()
   }
 }
-
-private val FAKE_DATA = listOf("Sample1", "Sample2", "Sample3")
