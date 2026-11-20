@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo App Android Cảnh Báo Té Ngã & Theo Dõi Sức Khỏe (ESP32-C3)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --background: #0f172a;
+      --card: #1e293b;
+      --card-border: #334155;
+      --border: #475569;
+      --sidebar: #020617;
+      --foreground: #f8fafc;
+      --muted-foreground: #94a3b8;
+      --primary: #3b82f6;
+      --primary-foreground: #ffffff;
+      --secondary: #334155;
+      --secondary-foreground: #e2e8f0;
+      --code-foreground: #38bdf8;
+      --link: #60a5fa;
+    }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 flex items-center justify-center">
+  <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+    
+    <!-- LEFT: ESP32-C3 SIMULATOR & RANDOM GENERATOR (5 cols) -->
+    <div class="md:col-span-5 bg-slate-800 border border-slate-700 rounded-2xl p-4 space-y-3 shadow-xl">
+      <div class="flex items-center justify-between border-b border-slate-700 pb-2.5">
+        <div>
+          <div class="text-sm font-bold uppercase tracking-wider text-blue-400">Bộ giả lập ESP32-C3 Cổ tay</div>
+          <div class="text-xs text-slate-400">Gen dữ liệu Dummy ngẫu nhiên bắn sang App</div>
+        </div>
+        <label class="flex items-center gap-1.5 text-xs cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-700">
+          <input id="autoStream" type="checkbox" checked class="accent-blue-500" />
+          <span>Auto 1.8s</span>
+        </label>
+      </div>
+
+      <!-- Generator Buttons -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="triggerRandomAny()" class="col-span-2 py-2.5 px-3 rounded-xl font-bold text-xs bg-blue-600 text-white hover:bg-blue-500 transition flex items-center justify-center gap-2 shadow">
+          <span>🎲</span> Gen Ngẫu Nhiên Mọi Tình Huống (Ngã / Vận động / Tim mạch)
+        </button>
+        <button onclick="triggerRandomFall()" class="py-2.5 px-3 rounded-xl font-bold text-xs bg-red-600 text-white hover:bg-red-500 transition text-left shadow">
+          🚨 Giả lập Té Ngã Thật
+          <div class="text-[11px] opacity-85 font-normal mt-0.5">5 kiểu ngã cổ tay + va đập</div>
+        </button>
+        <button onclick="triggerHardNegativeADL()" class="py-2.5 px-3 rounded-xl font-bold text-xs bg-amber-600 text-white hover:bg-amber-500 transition text-left shadow">
+          🏃 Giả lập Báo Giả (ADL)
+          <div class="text-[11px] opacity-85 font-normal mt-0.5">Vung tay / Ngồi mạnh</div>
+        </button>
+        <button onclick="triggerVitalAnomaly()" class="py-2 px-3 rounded-xl font-bold text-xs bg-purple-600 text-white hover:bg-purple-500 transition text-left shadow">
+          ❤️ Bất thường Nhịp tim/SpO2
+        </button>
+        <button onclick="triggerNormalState()" class="py-2 px-3 rounded-xl font-bold text-xs bg-emerald-600 text-white hover:bg-emerald-500 transition text-left shadow">
+          ✅ Trở về Bình thường
+        </button>
+      </div>
+
+      <!-- Live MQTT JSON Payload Preview -->
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-medium">Gói tin MQTT từ ESP32-C3:</span>
+          <span id="mqttTopicBadge" class="font-mono text-[11px] px-2 py-0.5 rounded bg-slate-700 text-sky-300">fall_alert/c3_wrist/telemetry</span>
+        </div>
+        <pre id="jsonPreview" class="text-xs font-mono bg-slate-950 border border-slate-700 rounded-xl p-3 overflow-x-auto leading-snug text-sky-400"></pre>
+      </div>
+
+      <!-- Waveform Canvas -->
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs text-slate-400">
+          <span>Biểu đồ Xung lực SMV (m/s²)</span>
+          <span id="thresholdReadout" class="font-mono text-red-400">Ngưỡng ngã: 16.0 m/s²</span>
+        </div>
+        <canvas id="waveCanvas" width="360" height="70" class="w-full h-[70px] rounded-xl bg-slate-950 border border-slate-700"></canvas>
+      </div>
+    </div>
+
+    <!-- RIGHT: ANDROID PHONE SCREEN SIMULATOR (7 cols) -->
+    <div class="md:col-span-7 bg-slate-900 border-4 border-slate-700 rounded-3xl overflow-hidden shadow-2xl">
+      
+      <!-- Android Status Bar -->
+      <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-sm">📱 FallAlert Kotlin App</span>
+          <span id="connDot" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] bg-emerald-500/20 text-emerald-400 font-medium">● ESP32-C3 Online</span>
+        </div>
+        <div class="flex items-center gap-3 text-slate-400 font-mono text-xs">
+          <span id="wristStateBadge">⌚ Đang đeo tay</span>
+          <span id="clockText">12:00:00</span>
+        </div>
+      </div>
+
+      <!-- Heads-up Push Notification Popup -->
+      <div id="pushPopup" class="hidden mx-3 mt-3 p-3 rounded-2xl bg-red-600 text-white shadow-xl animate-pulse">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div id="pushTitle" class="text-xs font-bold uppercase">🚨 CẢNH BÁO TÉ NGÃ KHẨN CẤP!</div>
+            <div id="pushBody" class="text-xs opacity-95 mt-0.5">Phát hiện Ngã ngửa đập mạnh (SMV: 22.4 m/s²)</div>
+          </div>
+          <span id="countdownBadge" class="px-2.5 py-1 rounded-lg bg-black/30 font-mono text-xs font-bold whitespace-nowrap">SOS: 15s</span>
+        </div>
+        <div class="flex gap-2 mt-2.5">
+          <button onclick="acknowledgeAlert()" class="flex-1 py-1.5 px-3 rounded-xl bg-white text-red-700 font-bold text-xs hover:bg-gray-100">
+            ✔ Xác nhận & Tắt còi C3
+          </button>
+          <button onclick="callSOS()" class="flex-1 py-1.5 px-3 rounded-xl bg-black/40 text-white font-bold text-xs hover:bg-black/60">
+            📞 Gọi Khẩn Cấp 115
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT: DASHBOARD -->
+      <div id="tab-dashboard" class="p-4 space-y-3">
+        <!-- Main Status Banner -->
+        <div id="statusBanner" class="p-3.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-between">
+          <div>
+            <div id="bannerTitle" class="text-base font-bold text-emerald-400">✅ TRẠNG THÁI: AN TOÀN</div>
+            <div id="bannerDesc" class="text-xs text-slate-300 mt-0.5">Kịch bản: Đi bộ bình thường (normal_walking)</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-400">Kết luận hệ thống</div>
+            <div id="fusionVerdict" class="text-sm font-bold text-emerald-400">Bình thường</div>
+          </div>
+        </div>
+
+        <!-- 4 Realtime Metric Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700">
+            <div class="text-xs text-slate-400">❤️ Nhịp tim</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="hrVal" class="text-2xl font-bold font-mono tabular-nums">76</span>
+              <span class="text-xs text-slate-400">BPM</span>
+            </div>
+            <div id="hrStatus" class="text-xs text-emerald-400 font-medium mt-0.5">Bình thường</div>
+          </div>
+
+          <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700">
+            <div class="text-xs text-slate-400">🩸 Oxy SpO2</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="spo2Val" class="text-2xl font-bold font-mono tabular-nums">98</span>
+              <span class="text-xs text-slate-400">%</span>
+            </div>
+            <div id="spo2Status" class="text-xs text-emerald-400 font-medium mt-0.5">Tốt (95-100%)</div>
+          </div>
+
+          <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700">
+            <div class="text-xs text-slate-400">💥 Lực đập SMV</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="smvVal" class="text-2xl font-bold font-mono tabular-nums">9.8</span>
+              <span class="text-xs text-slate-400">m/s²</span>
+            </div>
+            <div id="smvStatus" class="text-xs text-slate-400 mt-0.5">&lt; 16.0 m/s²</div>
+          </div>
+
+          <div class="p-3 rounded-2xl bg-slate-800/90 border border-slate-700">
+            <div class="text-xs text-slate-400">🤖 AI Báo Ngã</div>
+            <div class="mt-1 flex items-baseline gap-1">
+              <span id="aiVal" class="text-2xl font-bold font-mono tabular-nums">2.4</span>
+              <span class="text-xs text-slate-400">%</span>
+            </div>
+            <div id="aiStatus" class="text-xs text-slate-400 mt-0.5">ADL: 97.6%</div>
+          </div>
+        </div>
+
+        <!-- Dual-Layer Explanation Bar -->
+        <div class="p-3 rounded-xl bg-slate-800/60 border border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="font-semibold text-slate-300">Bộ lọc 2 tầng:</span>
+            <span id="condAiBadge" class="px-2 py-0.5 rounded bg-slate-700">1. AI Fall ≥ 75%: ❌</span>
+            <span id="condSmvBadge" class="px-2 py-0.5 rounded bg-slate-700">2. Lực SMV &gt; 16.0: ❌</span>
+          </div>
+          <span id="buzzerState" class="font-mono text-xs text-slate-400">🔕 Còi C3: TẮT</span>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT: HISTORY -->
+      <div id="tab-history" class="hidden p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold">Nhật ký Cảnh báo & Sự kiện (Lưu trên máy)</span>
+          <button onclick="clearHistory()" class="text-xs text-blue-400 hover:underline">Xóa lịch sử</button>
+        </div>
+        <div id="historyList" class="space-y-2 max-h-[250px] overflow-y-auto pr-1"></div>
+      </div>
+
+      <!-- TAB CONTENT: SETTINGS -->
+      <div id="tab-settings" class="hidden p-4 space-y-3 text-xs">
+        <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-2">
+          <div class="flex justify-between">
+            <span class="font-semibold">Ngưỡng lực va chạm tiếp đất (SMV):</span>
+            <span id="smvSliderLabel" class="font-mono font-bold text-blue-400">16.0 m/s²</span>
+          </div>
+          <input id="smvSlider" type="range" min="12" max="22" step="0.5" value="16.0" oninput="updateSmvThreshold(this.value)" class="w-full accent-blue-500" />
+          <div class="text-[11px] text-slate-400">Chỉ báo động khi AI nhận diện ngã ≥ 75% VÀ lực đập vượt ngưỡng này.</div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 space-y-1.5">
+            <div class="text-slate-400">Số điện thoại SOS Khẩn cấp:</div>
+            <input id="sosPhone" type="text" value="0912.345.678 (Con trai)" class="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-600 font-mono text-xs" />
+          </div>
+          <div class="p-3 rounded-2xl bg-slate-800 border border-slate-700 flex flex-col justify-between gap-2">
+            <div class="text-slate-400">Kiểm tra phần cứng từ xa:</div>
+            <button onclick="testRemoteBuzzer()" class="py-2 px-3 rounded-xl bg-blue-600 text-white font-semibold text-xs hover:bg-blue-500">
+              🔊 Bấm kêu thử còi Buzzer C3
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Navigation Bar (3 Tabs) -->
+      <div class="grid grid-cols-3 border-t border-slate-800 bg-slate-950 text-xs">
+        <button id="nav-dashboard" onclick="switchTab('dashboard')" class="py-3 font-bold text-blue-400 border-t-2 border-blue-400 flex items-center justify-center gap-1.5">
+          <span>📊</span> Trang chủ
+        </button>
+        <button id="nav-history" onclick="switchTab('history')" class="py-3 text-slate-400 border-t-2 border-transparent flex items-center justify-center gap-1.5">
+          <span>🕒</span> Lịch sử <span id="histCount" class="px-1.5 rounded-full bg-red-500/20 text-red-400 text-[11px] font-mono">0</span>
+        </button>
+        <button id="nav-settings" onclick="switchTab('settings')" class="py-3 text-slate-400 border-t-2 border-transparent flex items-center justify-center gap-1.5">
+          <span>⚙️</span> Cài đặt
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let smvThreshold = 16.0;
+    let historyLogs = [];
+    let smvWave = new Array(40).fill(9.8);
+    let countdownTimer = null;
+    let countdownSec = 15;
+    let activeEmergency = false;
+
+    const FALL_SCENARIOS = [
+      { code: "backward_fall", name: "Ngã ngửa ra sau đập sàn", smv: [20.5, 25.8], ai: [88, 99], hr: [108, 128], spo2: [94, 97] },
+      { code: "forward_fall", name: "Ngã chúi về phía trước chống tay", smv: [18.8, 24.2], ai: [84, 98], hr: [102, 120], spo2: [95, 98] },
+      { code: "lateral_fall", name: "Ngã nghiêng đập hông/cổ tay", smv: [17.5, 22.9], ai: [81, 96], hr: [98, 116], spo2: [95, 98] },
+      { code: "syncope_collapse", name: "Choáng ngất tụt huyết áp ngã quỵ", smv: [17.0, 21.5], ai: [85, 97], hr: [48, 56], spo2: [89, 93] },
+      { code: "chair_slip_fall", name: "Trượt ngã khỏi ghế ngồi", smv: [16.8, 20.4], ai: [79, 93], hr: [95, 112], spo2: [95, 98] }
+    ];
+
+    const HARD_ADL_SCENARIOS = [
+      { code: "abrupt_sit", name: "Ngồi phịch mạnh xuống ghế (ADL)", smv: [13.2, 15.4], ai: [76, 85], hr: [80, 92], spo2: [97, 99], note: "AI nghi ngờ ngã nhưng Lực SMV < ngưỡng nên ĐÃ LỌC BÁO GIẢ!" },
+      { code: "wrist_swing", name: "Vung tay mạnh / Vỗ tay (ADL)", smv: [16.8, 19.5], ai: [18, 42], hr: [84, 96], spo2: [97, 99], note: "Lực cổ tay lớn nhưng AI nhận ra mẫu chuyển động vung tay (Fall < 75%) -> ĐÃ LỌC BÁO GIẢ!" },
+      { code: "stumble_recovery", name: "Vấp nhẹ nhưng tự đứng vững (ADL)", smv: [13.8, 15.6], ai: [35, 62], hr: [88, 98], spo2: [96, 98], note: "Đã tự lấy lại thăng bằng -> Không báo động giả!" }
+    ];
+
+    const NORMAL_SCENARIOS = [
+      { code: "normal_walking", name: "Đi bộ bình thường", smv: [9.6, 11.2], ai: [1.0, 6.5], hr: [72, 84], spo2: [97, 99] },
+      { code: "bed_turn_rest", name: "Nghỉ ngơi / Đứng yên", smv: [9.7, 10.0], ai: [0.5, 3.0], hr: [66, 75], spo2: [97, 99] },
+      { code: "sit_to_stand", name: "Đứng lên ngồi xuống nhẹ nhàng", smv: [10.4, 12.1], ai: [4.0, 12.0], hr: [75, 86], spo2: [97, 99] }
+    ];
+
+    function rand(min, max, dec = 1) {
+      const v = min + Math.random() * (max - min);
+      return Number(v.toFixed(dec));
+    }
+
+    function playBeep(freq = 880, durationMs = 140, count = 2) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        for (let i = 0; i < count; i++) {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "square";
+          osc.frequency.value = freq;
+          gain.gain.value = 0.06;
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          const t0 = ctx.currentTime + i * 0.22;
+          osc.start(t0);
+          osc.stop(t0 + durationMs / 1000);
+        }
+      } catch (e) {}
+    }
+
+    function applyTelemetry(data, customNote = "") {
+      const nowStr = new Date().toLocaleTimeString("vi-VN");
+      document.getElementById("clockText").textContent = nowStr;
+
+      const aiPass = data.fall_score >= 75.0;
+      const smvPass = data.max_smv > smvThreshold;
+      const isRealFall = aiPass && smvPass;
+      const isVitalDanger = data.heart_rate > 120 || data.heart_rate < 55 || data.spo2 < 93;
+
+      const payload = {
+        device_id: "esp32_c3_wrist_01",
+        activity: data.code,
+        fall_detected: isRealFall,
+        fall_score_pct: data.fall_score,
+        max_smv_ms2: data.max_smv,
+        heart_rate_bpm: data.heart_rate,
+        spo2_pct: data.spo2,
+        status: isRealFall ? "FALL_ALERT" : (isVitalDanger ? "VITAL_WARNING" : "SAFE")
+      };
+
+      document.getElementById("mqttTopicBadge").textContent = isRealFall ? "fall_alert/c3_wrist/alert (QoS 1)" : "fall_alert/c3_wrist/telemetry";
+      document.getElementById("jsonPreview").textContent = JSON.stringify(payload, null, 2);
+
+      document.getElementById("hrVal").textContent = data.heart_rate;
+      const hrEl = document.getElementById("hrStatus");
+      if (data.heart_rate > 115) { hrEl.textContent = "⚠️ Nhịp tim nhanh!"; hrEl.className = "text-xs text-red-400 font-bold mt-0.5"; }
+      else if (data.heart_rate < 55) { hrEl.textContent = "⚠️ Nhịp tim chậm!"; hrEl.className = "text-xs text-amber-400 font-bold mt-0.5"; }
+      else { hrEl.textContent = "Bình thường"; hrEl.className = "text-xs text-emerald-400 font-medium mt-0.5"; }
+
+      document.getElementById("spo2Val").textContent = data.spo2;
+      const spEl = document.getElementById("spo2Status");
+      if (data.spo2 < 93) { spEl.textContent = "🚨 Thiếu Oxy máu!"; spEl.className = "text-xs text-red-400 font-bold mt-0.5"; }
+      else { spEl.textContent = "Tốt (95-100%)"; spEl.className = "text-xs text-emerald-400 font-medium mt-0.5"; }
+
+      document.getElementById("smvVal").textContent = data.max_smv.toFixed(1);
+      document.getElementById("smvStatus").textContent = smvPass ? `🚨 Vượt ngưỡng (${smvThreshold})` : `< ${smvThreshold.toFixed(1)} m/s²`;
+      document.getElementById("smvStatus").className = smvPass ? "text-xs text-red-400 font-bold mt-0.5" : "text-xs text-slate-400 mt-0.5";
+
+      document.getElementById("aiVal").textContent = data.fall_score.toFixed(1);
+      document.getElementById("aiStatus").textContent = `ADL: ${(100 - data.fall_score).toFixed(1)}%`;
+      document.getElementById("aiStatus").className = aiPass ? "text-xs text-red-400 font-bold mt-0.5" : "text-xs text-slate-400 mt-0.5";
+
+      document.getElementById("condAiBadge").textContent = `1. AI Fall ≥ 75%: ${aiPass ? "✅" : "❌"}`;
+      document.getElementById("condSmvBadge").textContent = `2. Lực SMV > ${smvThreshold.toFixed(1)}: ${smvPass ? "✅" : "❌"}`;
+
+      const banner = document.getElementById("statusBanner");
+      const bTitle = document.getElementById("bannerTitle");
+      const bDesc = document.getElementById("bannerDesc");
+      const verdict = document.getElementById("fusionVerdict");
+      const buzzer = document.getElementById("buzzerState");
+
+      if (isRealFall) {
+        activeEmergency = true;
+        banner.className = "p-3.5 rounded-2xl border-2 border-red-500 bg-red-500/15 flex items-center justify-between";
+        bTitle.className = "text-base font-bold text-red-400";
+        bTitle.textContent = `🚨 PHÁT HIỆN TÉ NGÃ: ${data.name.toUpperCase()}`;
+        bDesc.textContent = `Va chạm ${data.max_smv} m/s² | AI Fall ${data.fall_score}% | HR: ${data.heart_rate} BPM, SpO2: ${data.spo2}%`;
+        verdict.className = "text-sm font-bold text-red-400";
+        verdict.textContent = "TÉ NGÃ THẬT!";
+        buzzer.textContent = "🔊 Còi C3: ĐANG HÚ!";
+        buzzer.className = "font-mono text-xs text-red-400 font-bold";
+
+        showPushPopup(`🚨 CẢNH BÁO TÉ NGÃ: ${data.name}`, `Lực đập: ${data.max_smv} m/s² (AI: ${data.fall_score}%) • Nhịp tim: ${data.heart_rate} BPM • SpO2: ${data.spo2}%`);
+        addHistory("FALL", `🚨 Té ngã: ${data.name}`, `Lực đập ${data.max_smv} m/s² | AI ${data.fall_score}% | HR ${data.heart_rate} BPM | SpO2 ${data.spo2}%`, nowStr);
+        playBeep(980, 160, 3);
+      } else if (isVitalDanger) {
+        banner.className = "p-3.5 rounded-2xl border border-purple-500 bg-purple-500/15 flex items-center justify-between";
+        bTitle.className = "text-base font-bold text-purple-300";
+        bTitle.textContent = `⚠️ CẢNH BÁO CHỈ SỐ SINH TỒN BẤT THƯỜNG`;
+        bDesc.textContent = `${data.name} (Nhịp tim: ${data.heart_rate} BPM, SpO2: ${data.spo2}%)`;
+        verdict.className = "text-sm font-bold text-purple-300";
+        verdict.textContent = "Bất thường Y tế";
+        addHistory("VITAL", `❤️ Bất thường sinh tồn: ${data.name}`, `HR: ${data.heart_rate} BPM | SpO2: ${data.spo2}% (Không ngã)`, nowStr);
+        playBeep(660, 200, 2);
+      } else if (customNote) {
+        banner.className = "p-3.5 rounded-2xl border border-amber-500/60 bg-amber-500/10 flex items-center justify-between";
+        bTitle.className = "text-base font-bold text-amber-400";
+        bTitle.textContent = `🛡️ ĐÃ CHẶN BÁO ĐỘNG GIẢ: ${data.name}`;
+        bDesc.textContent = customNote;
+        verdict.className = "text-sm font-bold text-emerald-400";
+        verdict.textContent = "An toàn (Lọc báo giả)";
+        buzzer.textContent = "🔕 Còi C3: TẮT";
+        buzzer.className = "font-mono text-xs text-slate-400";
+        addHistory("FILTERED", `🛡️ Đã lọc báo giả: ${data.name}`, customNote, nowStr);
+      } else if (!activeEmergency) {
+        banner.className = "p-3.5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 flex items-center justify-between";
+        bTitle.className = "text-base font-bold text-emerald-400";
+        bTitle.textContent = "✅ TRẠNG THÁI: AN TOÀN";
+        bDesc.textContent = `Hoạt động cổ tay: ${data.name} (${data.code})`;
+        verdict.className = "text-sm font-bold text-emerald-400";
+        verdict.textContent = "Bình thường";
+        buzzer.textContent = "🔕 Còi C3: TẮT";
+        buzzer.className = "font-mono text-xs text-slate-400";
+      }
+
+      smvWave.push(data.max_smv);
+      if (smvWave.length > 40) smvWave.shift();
+      drawWaves();
+    }
+
+    function showPushPopup(title, body) {
+      document.getElementById("pushTitle").textContent = title;
+      document.getElementById("pushBody").textContent = body;
+      document.getElementById("pushPopup").classList.remove("hidden");
+      countdownSec = 15;
+      document.getElementById("countdownBadge").textContent = `Tự gọi SOS: ${countdownSec}s`;
+      if (countdownTimer) clearInterval(countdownTimer);
+      countdownTimer = setInterval(() => {
+        countdownSec--;
+        if (countdownSec <= 0) {
+          clearInterval(countdownTimer);
+          document.getElementById("countdownBadge").textContent = "📞 ĐANG GỌI SOS...";
+        } else {
+          document.getElementById("countdownBadge").textContent = `Tự gọi SOS: ${countdownSec}s`;
+        }
+      }, 1000);
+    }
+
+    function acknowledgeAlert() {
+      activeEmergency = false;
+      if (countdownTimer) clearInterval(countdownTimer);
+      document.getElementById("pushPopup").classList.add("hidden");
+      addHistory("ACK", "✔ Người thân đã xác nhận & Tắt còi ESP32-C3", "Đã gửi lệnh MQTT tắt còi Buzzer về mạch đeo tay", new Date().toLocaleTimeString("vi-VN"));
+      triggerNormalState();
+    }
+
+    function callSOS() {
+      const phone = document.getElementById("sosPhone").value;
+      if (countdownTimer) clearInterval(countdownTimer);
+      document.getElementById("countdownBadge").textContent = `📞 Đang gọi ${phone}`;
+      addHistory("SOS", `📞 Đã bấm gọi khẩn cấp: ${phone}`, "Kích hoạt cuộc gọi cấp cứu 1 chạm từ màn hình cảnh báo", new Date().toLocaleTimeString("vi-VN"));
+    }
+
+    function triggerRandomFall() {
+      document.getElementById("autoStream").checked = false;
+      const sc = FALL_SCENARIOS[Math.floor(Math.random() * FALL_SCENARIOS.length)];
+      applyTelemetry({
+        code: sc.code,
+        name: sc.name,
+        max_smv: rand(Math.max(sc.smv[0], smvThreshold + 1.2), sc.smv[1], 1),
+        fall_score: rand(sc.ai[0], sc.ai[1], 1),
+        heart_rate: Math.round(rand(sc.hr[0], sc.hr[1], 0)),
+        spo2: Math.round(rand(sc.spo2[0], sc.spo2[1], 0))
+      });
+    }
+
+    function triggerHardNegativeADL() {
+      document.getElementById("autoStream").checked = false;
+      const sc = HARD_ADL_SCENARIOS[Math.floor(Math.random() * HARD_ADL_SCENARIOS.length)];
+      let smv = rand(sc.smv[0], sc.smv[1], 1);
+      if (sc.code === "abrupt_sit" && smv >= smvThreshold) smv = Number((smvThreshold - 1.2).toFixed(1));
+      applyTelemetry({
+        code: sc.code,
+        name: sc.name,
+        max_smv: smv,
+        fall_score: rand(sc.ai[0], sc.ai[1], 1),
+        heart_rate: Math.round(rand(sc.hr[0], sc.hr[1], 0)),
+        spo2: Math.round(rand(sc.spo2[0], sc.spo2[1], 0))
+      }, sc.note);
+    }
+
+    function triggerVitalAnomaly() {
+      document.getElementById("autoStream").checked = false;
+      const types = [
+        { code: "tachycardia_episode", name: "Nhịp tim tăng vọt bất thường khi nghỉ", hr: Math.round(rand(128, 145, 0)), spo2: 96 },
+        { code: "hypoxia_episode", name: "Tụt nồng độ Oxy máu (SpO2 thấp)", hr: 94, spo2: Math.round(rand(88, 91, 0)) },
+        { code: "bradycardia_episode", name: "Nhịp tim đập chậm bất thường", hr: Math.round(rand(44, 51, 0)), spo2: 95 }
+      ];
+      const t = types[Math.floor(Math.random() * types.length)];
+      applyTelemetry({
+        code: t.code,
+        name: t.name,
+        max_smv: rand(9.7, 10.3, 1),
+        fall_score: rand(1.2, 4.5, 1),
+        heart_rate: t.hr,
+        spo2: t.spo2
+      });
+    }
+
+    function triggerNormalState() {
+      activeEmergency = false;
+      document.getElementById("pushPopup").classList.add("hidden");
+      const sc = NORMAL_SCENARIOS[Math.floor(Math.random() * NORMAL_SCENARIOS.length)];
+      applyTelemetry({
+        code: sc.code,
+        name: sc.name,
+        max_smv: rand(sc.smv[0], sc.smv[1], 1),
+        fall_score: rand(sc.ai[0], sc.ai[1], 1),
+        heart_rate: Math.round(rand(sc.hr[0], sc.hr[1], 0)),
+        spo2: Math.round(rand(sc.spo2[0], sc.spo2[1], 0))
+      });
+    }
+
+    function triggerRandomAny() {
+      const r = Math.random();
+      if (r < 0.45) triggerRandomFall();
+      else if (r < 0.75) triggerHardNegativeADL();
+      else triggerVitalAnomaly();
+    }
+
+    function addHistory(type, title, detail, time) {
+      historyLogs.unshift({ type, title, detail, time });
+      document.getElementById("histCount").textContent = historyLogs.length;
+      renderHistory();
+    }
+
+    function clearHistory() {
+      historyLogs = [];
+      document.getElementById("histCount").textContent = "0";
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById("historyList");
+      if (historyLogs.length === 0) {
+        container.innerHTML = `<div class="text-xs text-slate-400 py-8 text-center">Chưa có cảnh báo nào. Hãy bấm nút giả lập bên trái!</div>`;
+        return;
+      }
+      container.innerHTML = historyLogs.map(item => {
+        const badgeColor = item.type === "FALL" ? "border-red-500/50 bg-red-500/10" :
+                           item.type === "VITAL" ? "border-purple-500/50 bg-purple-500/10" :
+                           item.type === "FILTERED" ? "border-amber-500/50 bg-amber-500/10" :
+                           "border-slate-700 bg-slate-800";
+        return `<div class="p-2.5 rounded-xl border ${badgeColor} text-xs flex justify-between items-start gap-2">
+          <div>
+            <div class="font-bold">${item.title}</div>
+            <div class="text-[11px] text-slate-300 mt-0.5">${item.detail}</div>
+          </div>
+          <span class="font-mono text-[11px] text-slate-400 whitespace-nowrap">${item.time}</span>
+        </div>`;
+      }).join("");
+    }
+
+    function switchTab(tab) {
+      ["dashboard", "history", "settings"].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.toggle("hidden", t !== tab);
+        const btn = document.getElementById(`nav-${t}`);
+        if (t === tab) {
+          btn.className = "py-3 font-bold text-blue-400 border-t-2 border-blue-400 flex items-center justify-center gap-1.5";
+        } else {
+          btn.className = "py-3 text-slate-400 border-t-2 border-transparent flex items-center justify-center gap-1.5";
+        }
+      });
+    }
+
+    function updateSmvThreshold(val) {
+      smvThreshold = parseFloat(val);
+      document.getElementById("smvSliderLabel").textContent = `${smvThreshold.toFixed(1)} m/s²`;
+      document.getElementById("thresholdReadout").textContent = `Ngưỡng ngã: ${smvThreshold.toFixed(1)} m/s²`;
+      drawWaves();
+    }
+
+    function testRemoteBuzzer() {
+      playBeep(1050, 120, 3);
+      addHistory("TEST", "🔊 Đã gửi lệnh Test còi Buzzer từ xa", "ESP32-C3 đã phát 3 tiếng Bíp kiểm tra kết nối", new Date().toLocaleTimeString("vi-VN"));
+      switchTab("history");
+    }
+
+    function drawWaves() {
+      const canvas = document.getElementById("waveCanvas");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const yThresh = h - ((smvThreshold - 8) / 20) * (h - 10) - 5;
+      ctx.strokeStyle = "rgba(239, 68, 68, 0.65)";
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, yThresh);
+      ctx.lineTo(w, yThresh);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.strokeStyle = "#10b981";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      smvWave.forEach((v, i) => {
+        const x = (i / (smvWave.length - 1)) * w;
+        const y = Math.max(4, Math.min(h - 4, h - ((v - 8) / 20) * (h - 10) - 5));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+    }
+
+    renderHistory();
+    triggerNormalState();
+    setInterval(() => {
+      if (document.getElementById("autoStream").checked && !activeEmergency) {
+        triggerNormalState();
+      }
+    }, 1800);
+  </script>
+</body>
+</html>
