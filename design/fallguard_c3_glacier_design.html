@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+  <title>FallGuard C3 - Giám Sát Té Ngã &amp; Sức Khỏe IoT (Glacier Design)</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com" rel="preconnect" />
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            glacier: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              deep: '#082f49',
+            }
+          },
+          animation: {
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'radar-ping': 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
+            'heartbeat': 'heartbeat 1.2s ease-in-out infinite',
+          },
+          keyframes: {
+            heartbeat: {
+              '0%, 100%': { transform: 'scale(1)' },
+              '14%': { transform: 'scale(1.22)' },
+              '28%': { transform: 'scale(1)' },
+              '42%': { transform: 'scale(1.15)' },
+              '70%': { transform: 'scale(1)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #e0f2fe; }
+    ::-webkit-scrollbar-thumb { background: #bae6fd; border-radius: 9999px; }
+    .tactile-btn { transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1); }
+    .tactile-btn:active { transform: scale(0.95); }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.88);
+      box-shadow: 0 8px 30px -4px rgba(186, 230, 253, 0.45), 0 2px 6px rgba(14, 165, 233, 0.06);
+    }
+    .glass-nav {
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 -4px 20px rgba(186, 230, 253, 0.35);
+    }
+    .glass-header {
+      background: rgba(240, 249, 255, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 2px 12px rgba(186, 230, 253, 0.25);
+    }
+    .glacier-bg {
+      background: radial-gradient(circle at 15% 10%, #e0f2fe 0%, #f0f9ff 45%, #f8fafc 100%);
+    }
+  </style>
+</head>
+<body class="glacier-bg text-slate-800 font-sans min-h-screen flex justify-center items-start select-none antialiased overflow-x-hidden">
+  <main class="w-full max-w-[430px] min-h-screen glacier-bg border-x border-glacier-200/80 flex flex-col relative pb-36 shadow-[0_20px_50px_rgba(186,230,253,0.5)]">
+    <!-- Persistent Top Header -->
+    <header class="sticky top-0 z-40 glass-header px-4 pt-3 pb-3">
+      <div class="flex items-center justify-between text-[11px] font-mono text-slate-500 mb-2 px-1">
+        <span class="font-bold text-slate-700" id="systemClock">00:10</span>
+        <div class="flex items-center space-x-1.5">
+          <span class="text-[10px] text-glacier-700 bg-glacier-100 px-1.5 py-0.5 rounded font-bold border border-glacier-300">5G IoT</span>
+          <span class="text-xs font-semibold text-slate-700">🔋 98%</span>
+        </div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-glacier-100 to-glacier-200 border border-glacier-300/80 flex items-center justify-center shadow-sm relative">
+            <svg class="w-5 h-5 text-glacier-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-white animate-pulse"></span>
+          </div>
+          <div>
+            <h1 class="font-bold text-base tracking-tight text-slate-900 flex items-center gap-1.5">
+              FallGuard <span class="text-[11px] font-mono bg-glacier-500 text-white px-1.5 py-0.5 rounded shadow-sm font-bold">C3</span>
+            </h1>
+            <p class="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+              <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              ESP32-C3 SuperMini • BLE 5.0
+            </p>
+          </div>
+        </div>
+        <div class="flex flex-col items-end">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-semibold shadow-sm">
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="font-mono text-[11px]">Trực tuyến</span>
+          </div>
+          <span class="text-[10px] text-slate-500 mt-0.5 font-medium">⌚ Đang đeo tay • 42ms</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT CONTAINER -->
+    <div class="flex-1 px-4 pt-3 pb-6">
+      <!-- TAB 1: TRANG CHỦ -->
+      <section class="space-y-3.5" id="tab-home">
+        <!-- 1. HERO STATUS CARD -->
+        <div class="relative overflow-hidden rounded-2xl p-4 transition-all duration-300 border border-red-300/80 bg-gradient-to-b from-rose-50/90 to-red-100/90 shadow-xl shadow-red-200/50 backdrop-blur-xl animate-pulse" id="heroStatusCard">
+          <div class="absolute -right-12 -top-12 w-36 h-36 bg-red-400/20 rounded-full blur-2xl pointer-events-none transition-all duration-500" id="heroGlow"></div>
+          <div class="flex items-start justify-between relative z-10">
+            <div class="flex items-center space-x-2.5">
+              <div class="w-10 h-10 rounded-xl bg-red-500/15 border border-red-400/40 flex items-center justify-center text-red-600 shadow-sm" id="heroIconContainer">
+                <svg class="w-6 h-6" fill="none" id="heroIconSvg" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              </div>
+              <div>
+                <span class="text-[11px] font-mono font-bold tracking-wider uppercase text-red-700 flex items-center gap-1.5" id="heroBadge"><span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span> 🚨 PHÁT HIỆN TÉ NGÃ: NGÃ NGỬA ĐẬP SÀN</span>
+                <h2 class="text-base font-bold text-red-700 tracking-tight mt-0.5" id="heroTitle">CẢNH BÁO TAI NẠN TÉ NGÃ KHẨN CẤP!</h2>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono text-slate-600 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200 shadow-sm font-semibold">C3: 100Hz</span>
+          </div>
+          <p class="text-xs text-red-950/80 mt-2.5 leading-relaxed relative z-10 font-medium" id="heroSubtitle">Lực va chạm vượt ngưỡng cực hạn: 24.8 m/s² • AI TinyML nhận diện ngã: 96.5% • Còi Buzzer ESP32-C3 đang kích hoạt!</p>
+          <div class="mt-4 pt-3 border-t border-red-200/80 relative z-10" id="emergencyActionContainer">
+            <div class="flex items-center justify-between bg-white/70 backdrop-blur-md rounded-xl p-3 border border-red-300 shadow-sm">
+              <div class="flex items-center space-x-3">
+                <div class="relative w-12 h-12 flex items-center justify-center">
+                  <svg class="w-12 h-12 transform -rotate-90">
+                    <circle cx="24" cy="24" fill="none" r="20" stroke="#fecdd3" stroke-width="4"></circle>
+                    <circle class="transition-all duration-1000 ease-linear" cx="24" cy="24" fill="none" id="countdownCircle" r="20" stroke="#e11d48" stroke-dasharray="125.6" stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></circle>
+                  </svg>
+                  <span class="absolute font-mono font-bold text-sm text-red-600" id="countdownText">15s</span>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wide">Tự động gọi SOS &amp; gửi GPS sau: 15s</h4>
+                  <p class="text-[11px] text-red-700 font-semibold">Đang kích hoạt còi hú 85dB trên cổ tay</p>
+                </div>
+              </div>
+              <span class="inline-flex px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-red-600 text-white shadow-sm animate-pulse">CẤP CỨU</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5 mt-3">
+              <button class="tactile-btn flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-md border border-slate-200" onclick="handleCancelFallAlarm()">
+                <span>✔ Tôi ổn (Tắt còi)</span>
+              </button>
+              <button class="tactile-btn flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 text-white font-bold text-xs shadow-lg shadow-red-500/30 animate-pulse" onclick="handleCallEmergencySOS()">
+                <span>📞 Gọi Cấp cứu 115</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 2x2 BENTO SENSOR GRID -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- Card 1: Heart Rate -->
+          <div class="glass-card rounded-2xl p-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Nhịp tim (PPG)</span>
+              <div class="text-rose-500 animate-heartbeat">❤️</div>
+            </div>
+            <div class="mt-2">
+              <div class="flex items-baseline space-x-1.5">
+                <span class="text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight" id="valHeartRate">118</span>
+                <span class="text-xs font-mono text-slate-500 font-semibold">BPM</span>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-2 border-t border-glacier-100">
+                <span class="text-[10px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded" id="badgeHeartStatus">Tăng vọt (Hồi hộp)</span>
+                <span class="text-[10px] font-mono text-slate-500">~ 76 avg</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 2: SpO2 -->
+          <div class="glass-card rounded-2xl p-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-glacier-500"></span> Nồng độ Oxy (SpO2)</span>
+              <span class="text-glacier-600 text-xs">🩸</span>
+            </div>
+            <div class="mt-2">
+              <div class="flex items-baseline space-x-1.5">
+                <span class="text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight" id="valSpO2">95</span>
+                <span class="text-xs font-mono text-slate-500 font-semibold">%</span>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-2 border-t border-glacier-100">
+                <span class="text-[10px] font-semibold text-glacier-700 bg-glacier-100 border border-glacier-200 px-1.5 py-0.5 rounded" id="badgeSpO2Status">Tốt (95-100%)</span>
+                <div class="w-10 bg-slate-200 h-1.5 rounded-full overflow-hidden"><div class="bg-glacier-500 h-full rounded-full" id="barSpO2" style="width: 95%;"></div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Card 3: SMV -->
+          <div class="glass-card rounded-2xl p-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Gia tốc SMV (MPU)</span>
+              <span class="text-[9px] font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded font-semibold border border-slate-200">G-Force</span>
+            </div>
+            <div class="mt-2">
+              <div class="flex items-baseline space-x-1">
+                <span class="text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight" id="valSMV">24.8</span>
+                <span class="text-xs font-mono text-slate-500 font-semibold">m/s²</span>
+              </div>
+              <div class="pt-2 mt-2 border-t border-glacier-100">
+                <div class="flex justify-between text-[9px] font-mono text-slate-500 mb-1">
+                  <span>Hiện tại: <b class="text-slate-800" id="valSMVSub">2.53G</b></span>
+                  <span class="text-red-600">Ngưỡng: <b id="lblThresholdBadge">16.0</b></span>
+                </div>
+                <div class="relative w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-red-500 h-full transition-all duration-300" id="barSMV" style="width: 98%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Card 4: TinyML -->
+          <div class="glass-card rounded-2xl p-3.5 relative overflow-hidden flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-purple-500"></span> TinyML Inference</span>
+              <span class="text-purple-600 text-xs">🤖</span>
+            </div>
+            <div class="mt-2">
+              <div class="flex items-baseline space-x-1">
+                <span class="text-3xl font-extrabold font-mono tabular-nums text-slate-900 tracking-tight" id="valAIPercent">96.5</span>
+                <span class="text-xs font-mono text-slate-500 font-semibold">% Fall</span>
+              </div>
+              <div class="flex items-center justify-between pt-2 mt-2 border-t border-glacier-100">
+                <span class="text-[10px] font-semibold text-red-700 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded truncate" id="badgeAIClass">Ngã ngửa (96.5%)</span>
+                <span class="text-[9px] font-mono text-slate-500 font-medium">Edge INT8</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. DUAL-LAYER FUSION VERIFICATION STRIP -->
+        <div class="glass-card rounded-2xl p-3 shadow-md">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-700">Kiểm chứng Xác thực 2 Lớp (Dual-Layer)</span>
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-red-600 text-white shadow-sm animate-pulse" id="buzzerHardwareState">🚨 BUZZER C3: ĐANG HÚ (85dB)</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+            <div class="flex items-center justify-between p-2 rounded-xl bg-red-50/90 border border-red-300" id="layer1Box">
+              <div class="flex items-center space-x-1.5 truncate"><span id="layer1Icon">🚨</span><span class="text-[11px] text-slate-800 font-semibold truncate">1. AI TinyML ≥ 75%</span></div>
+              <span class="text-[10px] font-bold text-white bg-red-600 px-1 rounded" id="layer1Status">ĐẠT</span>
+            </div>
+            <div class="flex items-center justify-between p-2 rounded-xl bg-red-50/90 border border-red-300" id="layer2Box">
+              <div class="flex items-center space-x-1.5 truncate"><span id="layer2Icon">🚨</span><span class="text-[11px] text-slate-800 font-semibold truncate">2. SMV &gt; 16 m/s²</span></div>
+              <span class="text-[10px] font-bold text-white bg-red-600 px-1 rounded" id="layer2Status">ĐẠT</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. LIVE DUAL-WAVEFORM CHART CARD -->
+        <div class="glass-card rounded-2xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h3 class="text-xs font-bold text-slate-900 tracking-wide flex items-center gap-1.5" id="chartTitle">
+                <span class="inline-block w-2 h-2 rounded-full bg-glacier-500"></span>
+                Dạng sóng thời gian thực: Gia tốc SMV (m/s²)
+              </h3>
+              <p class="text-[10px] text-slate-500 font-mono mt-0.5">Tần số lấy mẫu: 100 Hz • Cửa sổ trượt 3.0s</p>
+            </div>
+            <div class="inline-flex p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-mono">
+              <button class="px-2 py-1 rounded-md bg-white text-glacier-700 font-bold shadow-sm border border-glacier-200" id="btnWaveSMV" onclick="switchWaveform('SMV')">SMV</button>
+              <button class="px-2 py-1 rounded-md text-slate-500" id="btnWavePPG" onclick="switchWaveform('PPG')">PPG Tim</button>
+            </div>
+          </div>
+          <div class="relative w-full h-36 bg-white/90 rounded-xl border border-glacier-200 overflow-hidden p-1 shadow-inner">
+            <div class="absolute left-0 right-0 top-[35%] border-b border-dashed border-red-500 pointer-events-none z-10 flex justify-end pr-2" id="chartThresholdLine">
+              <span class="text-[9px] font-mono text-red-600 bg-white/95 px-1.5 py-0.5 rounded border border-red-200 -mt-2.5 font-bold shadow-sm">Ngưỡng té: 16.0 m/s²</span>
+            </div>
+            <canvas class="w-full h-full relative z-20 block" id="liveWaveformCanvas"></canvas>
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 mt-2">
+            <span class="flex items-center gap-1">
+              <span class="inline-block w-2.5 h-1 rounded bg-glacier-500" id="chartLegendColor"></span>
+              <span class="font-medium" id="chartLegendLabel">Tín hiệu lọc Kalman (MPU6050)</span>
+            </span>
+            <span class="font-bold text-red-600 font-mono" id="chartPeakDisplay">Đỉnh va đập: 24.8 m/s²</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: LỊCH SỬ -->
+      <section class="space-y-3.5 hidden" id="tab-history">
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 tracking-tight">Lịch sử sự kiện &amp; Cảnh báo</h2>
+              <p class="text-[11px] text-slate-500 font-medium">Dữ liệu cảm biến MPU6050 &amp; MAX30102</p>
+            </div>
+            <button class="tactile-btn text-[10px] font-mono text-slate-600 px-2 py-1 rounded-lg border border-slate-200 bg-white/80" onclick="clearHistoryDemo()">Xóa lọc</button>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <div class="glass-card p-2.5 rounded-xl text-center border border-red-200 bg-red-50/50"><span class="text-[9px] font-mono text-red-700 block uppercase font-bold">🚨 Tổng té ngã</span><b class="text-xs font-mono font-extrabold text-red-600">4 vụ</b></div>
+            <div class="glass-card p-2.5 rounded-xl text-center border border-slate-200/80 bg-white/80"><span class="text-[9px] font-mono text-slate-600 block uppercase font-bold">📡 Đã gửi SOS</span><b class="text-xs font-mono font-extrabold text-slate-800">3 vụ</b></div>
+            <div class="glass-card p-2.5 rounded-xl text-center border border-emerald-200 bg-emerald-50/50"><span class="text-[9px] font-mono text-emerald-700 block uppercase font-bold">✔ Người đeo tự tắt</span><b class="text-xs font-mono font-extrabold text-emerald-700">1 vụ</b></div>
+          </div>
+        </div>
+        <div class="space-y-3" id="timelineContainer">
+          <div class="timeline-item fall glass-card rounded-2xl p-3.5 border-l-4 border-l-red-500">
+            <div class="flex items-start justify-between">
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">🚨 Phát hiện sự cố té ngã (Ngã ngửa đập sàn)</h4>
+                <span class="text-[10px] font-mono text-slate-500">Hôm nay, 14:32:05 • Hành lang tầng 2</span>
+              </div>
+              <span class="text-[10px] font-mono font-bold text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded">ĐÃ GỬI SOS</span>
+            </div>
+            <div class="mt-2.5 grid grid-cols-4 gap-1.5 p-2 rounded-xl bg-slate-50/80 text-[10px] font-mono border border-slate-200/80">
+              <div><span class="text-slate-500 block text-[9px]">LỰC SMV</span><b class="text-red-600">24.8 m/s²</b></div>
+              <div><span class="text-slate-500 block text-[9px]">AI TINYML</span><b class="text-red-600">96.5%</b></div>
+              <div><span class="text-slate-500 block text-[9px]">NHỊP TIM</span><b class="text-slate-800">118 BPM</b></div>
+              <div><span class="text-slate-500 block text-[9px]">SPO2</span><b class="text-slate-800">95%</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: CÀI ĐẶT -->
+      <section class="space-y-3.5 hidden" id="tab-settings">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 tracking-tight">Cài đặt &amp; Phần cứng</h2>
+          <p class="text-[11px] text-slate-500">Hiệu chuẩn cảm biến MPU6050 &amp; cấu hình khẩn cấp ESP32-C3 SuperMini</p>
+        </div>
+        <div class="glass-card rounded-2xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-2">
+            <div>
+              <h4 class="text-xs font-bold text-slate-900">Ngưỡng lực va chạm tiếp đất (SMV)</h4>
+              <p class="text-[10px] text-slate-500">Khuyên dùng: 16.0 m/s² để tránh báo động giả</p>
+            </div>
+            <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-glacier-100 text-glacier-700 border border-glacier-300" id="sliderValueBadge">16.0 m/s²</span>
+          </div>
+          <input class="w-full accent-glacier-500 bg-slate-200 h-2 rounded-lg cursor-pointer my-2" id="smvThresholdSlider" max="22.0" min="12.0" oninput="updateThresholdSlider(this.value)" step="0.5" type="range" value="16.0" />
+        </div>
+        <div class="glass-card rounded-2xl p-4 shadow-md space-y-3">
+          <h4 class="text-xs font-bold text-slate-900">Số Điện Thoại SOS Khẩn Cấp</h4>
+          <div class="flex items-center space-x-2">
+            <input class="flex-1 bg-white border border-slate-300 text-xs font-mono text-slate-900 rounded-xl px-3 py-2.5" id="inputEmergencyPhone" type="text" value="0912.345.678 (Anh Hùng - Con trai)" />
+            <button class="tactile-btn px-3 py-2.5 rounded-xl bg-rose-600 text-white text-xs font-semibold" onclick="testSOSCall()">Gọi thử</button>
+          </div>
+        </div>
+        <div class="glass-card rounded-2xl p-4 shadow-md space-y-3">
+          <h4 class="text-xs font-bold text-slate-900">Chẩn Đoán Phần Cứng &amp; IoT</h4>
+          <button class="tactile-btn w-full py-2.5 px-3 rounded-xl bg-amber-50 border border-amber-200 text-slate-800 text-xs font-bold flex items-center justify-center space-x-2" id="btnTestBuzzer" onclick="triggerHardwareBuzzerTest()">
+            <span id="buzzerSoundIcon">🔊</span>
+            <span id="buzzerButtonText">Bấm kêu thử còi Buzzer 85dB trên ESP32-C3</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- INTERACTIVE DEMO SIMULATOR DOCK -->
+    <div class="fixed bottom-16 left-0 right-0 max-w-[430px] mx-auto px-3 z-30">
+      <div class="rounded-2xl p-2.5 bg-white/85 backdrop-blur-xl border border-white/90 shadow-[0_10px_35px_rgba(186,230,253,0.5)]">
+        <div class="flex items-center justify-between mb-1.5 px-1">
+          <span class="text-[10px] font-mono font-bold tracking-wider text-slate-700 uppercase">ESP32-C3 IoT Test Simulator</span>
+          <span class="text-[9px] font-mono text-slate-500 font-medium">Bấm thử nghiệm tương tác</span>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-[10px] font-medium">
+          <button class="tactile-btn py-1.5 px-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold" onclick="simulateScenario('safe')">✅ An toàn</button>
+          <button class="tactile-btn py-1.5 px-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 font-semibold" onclick="simulateScenario('false_alarm')">🛡️ Báo giả</button>
+          <button class="tactile-btn py-1.5 px-1 rounded-lg bg-red-600 text-white font-extrabold border border-red-500" onclick="simulateScenario('real_fall')">🚨 Ngã thật</button>
+          <button class="tactile-btn py-1.5 px-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 font-semibold" onclick="simulateScenario('cardio')">❤️ Tim/SpO2</button>
+          <button class="tactile-btn py-1.5 px-1 rounded-lg bg-glacier-100 border border-glacier-300 text-glacier-800 font-semibold" onclick="simulateScenario('random')">🎲 Ngẫu nhiên</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto glass-nav px-6 py-2 z-40">
+      <div class="flex justify-between items-center">
+        <button class="tactile-btn flex flex-col items-center justify-center flex-1 py-1 text-glacier-600 font-bold" id="navTabHome" onclick="switchNavTab('home')">
+          <span class="text-[11px]">🏠 Trang chủ</span>
+        </button>
+        <button class="tactile-btn flex flex-col items-center justify-center flex-1 py-1 text-slate-400" id="navTabHistory" onclick="switchNavTab('history')">
+          <span class="text-[11px]">🕒 Lịch sử</span>
+        </button>
+        <button class="tactile-btn flex flex-col items-center justify-center flex-1 py-1 text-slate-400" id="navTabSettings" onclick="switchNavTab('settings')">
+          <span class="text-[11px]">⚙️ Cài đặt</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Toast Notification Overlay -->
+    <div class="fixed top-5 left-4 right-4 max-w-[390px] mx-auto p-3 rounded-xl bg-white/95 backdrop-blur-xl border border-glacier-300 text-slate-800 text-xs font-semibold shadow-2xl flex items-center justify-between z-50 transform -translate-y-24 transition-transform duration-300 pointer-events-none" id="toastNotification">
+      <span id="toastMessage">Thông báo</span>
+      <span class="text-[10px] font-mono text-glacier-700 bg-glacier-100 px-2 py-0.5 rounded font-bold">ESP32 OK</span>
+    </div>
+  </main>
+</body>
+</html>
