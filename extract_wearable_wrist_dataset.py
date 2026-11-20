@@ -7,7 +7,7 @@ import zipfile
 import numpy as np
 
 # Đường dẫn file zip gốc trong bộ dataset Synthetic Multirate Time-Series Dataset for Health
-ZIP_PATH = r"D:\Fall_Alert\Fall_Alert_Sys\Dataset\Synthetic Multirate Time-Series Dataset for Health\Synthetic Multirate Time-Series Dataset for Health\Elderly_Release_3_2_Mendeley_Repository.zip"
+ZIP_PATH = r"D:\Fall_Alert\Fall_Alert_Sys\folder không liên quan\Dataset\Synthetic Multirate Time-Series Dataset for Health\Synthetic Multirate Time-Series Dataset for Health\Elderly_Release_3_2_Mendeley_Repository.zip"
 
 # Thư mục đích theo yêu cầu: wearable_dataset
 OUTPUT_DIR = r"D:\Fall_Alert\Fall_Alert_Sys\wearable_dataset"
