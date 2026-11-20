@@ -1,0 +1,80 @@
+================================================================================
+TÀI LIỆU ĐẶC TẢ CHỨC NĂNG MVP (MINIMUM VIABLE PRODUCT)
+ỨNG DỤNG ANDROID (KOTLIN) CẢNH BÁO TÉ NGÃ & THEO DÕI SỨC KHỎE ONLINE
+Kết nối phần cứng: ESP32-C3 SuperMini + MPU6050 (TinyML) + MAX30102 + Buzzer
+================================================================================
+
+I. NHÓM CHỨC NĂNG CỐT LÕI (MVP - BẮT BUỘC PHẢI CÓ CHO BẢN DEMO ĐẦU TIÊN)
+--------------------------------------------------------------------------------
+1. Kết nối & Đồng bộ dữ liệu Thời gian thực (Real-time IoT Connectivity)
+   - Tự động kết nối tới MQTT Broker (hoặc Cloud Server) ở chế độ chạy ngầm (Foreground Service) để không bị mất kết nối khi khóa màn hình điện thoại.
+   - Hiển thị trạng thái thiết bị đeo cổ tay ESP32-C3:
+     + Đang trực tuyến (Online - Xanh lá) / Mất kết nối (Offline - Xám).
+     + Trạng thái tiếp xúc cảm biến: Đang đeo trên tay / Đã tháo khỏi tay.
+     + Thời gian cập nhật gói tin gần nhất (ví dụ: "Cập nhật 2 giây trước").
+
+2. Hệ thống Cảnh báo Té ngã Khẩn cấp (Instant Fall Alert System)
+   - Nhận diện tín hiệu ngã từ ESP32-C3 (kết hợp xác suất AI TinyML >= 75% và Lực va chạm tiếp đất SMV > 16.0 m/s²).
+   - Phát thông báo khẩn cấp ưu tiên cao nhất (High-Priority Heads-Up Notification):
+     + Bật chuông báo động lớn + Rung liên tục trên điện thoại người thân kể cả khi điện thoại đang tắt màn hình.
+     + Đổi giao diện App sang chế độ Khẩn cấp (Màn hình Đỏ nhấp nháy).
+   - Hiển thị chi tiết cú ngã ngay trên hộp thoại cảnh báo:
+     + Thời điểm xảy ra té ngã.
+     + Độ tin cậy của AI (ví dụ: 94.5%) và Lực chấn động đỉnh (ví dụ: 21.8 m/s²).
+     + Chỉ số sinh tồn ngay sau cú ngã (Nhịp tim & SpO2 lúc vừa ngã để đánh giá mức độ nguy hiểm).
+
+3. Phản hồi & Xử lý Cấp cứu 1 chạm (Emergency Response Actions)
+   - Nút "ĐÃ XÁC NHẬN / TẮT BÁO ĐỘNG" (Acknowledge):
+     + Người giám hộ bấm xác nhận đã biết sự cố -> Tắt chuông trên điện thoại và gửi lệnh MQTT ngược về ESP32-C3 để tắt còi Buzzer trên cổ tay người già.
+   - Nút "GỌI KHẨN CẤP 1 CHẠM" (Quick Call):
+     + Mở nhanh cuộc gọi tới số điện thoại của người đang đeo thiết bị hoặc gọi cấp cứu 115 / bác sĩ gia đình.
+   - Cơ chế Đếm ngược chống báo giả (Countdown Cancel - 10 đến 15 giây):
+     + Khi vừa phát hiện ngã, cho phép hủy báo động trong 15 giây nếu người đeo chỉ vô tình làm rơi thiết bị.
+
+4. Bảng điều khiển Theo dõi Sức khỏe Trực tuyến (Live Health Dashboard)
+   - Thẻ Nhịp tim (Heart Rate - BPM):
+     + Hiển thị số nhịp tim/phút theo thời gian thực từ cảm biến MAX30102.
+     + Phân loại trạng thái màu sắc: Bình thường (60-100 BPM - Xanh), Nhịp chậm (< 55 BPM - Vàng), Nhịp nhanh (> 110 BPM - Đỏ).
+   - Thẻ Nồng độ Oxy trong máu (SpO2 - %):
+     + Hiển thị chỉ số SpO2 (%) theo thời gian thực.
+     + Cảnh báo sớm thiếu oxy máu nếu SpO2 tụt xuống dưới 94%.
+   - Thẻ Động học & Vận động (Motion & AI Status):
+     + Hiển thị trạng thái vận động hiện tại (Bình thường / Đang di chuyển / Nghi ngờ ngã).
+     + Hiển thị thanh lực gia tốc tổng hợp (SMV - m/s²) và phần trăm dự đoán của AI (ADL % vs FALL %).
+
+5. Nhật ký Sự kiện & Lịch sử Cảnh báo (Alert & Incident History)
+   - Lưu trữ danh sách các sự kiện bất thường trong ngày/tuần (lưu cục bộ bằng Room Database / SharedPreferences):
+     + Lịch sử các lần phát hiện té ngã (Thời gian, Lực đập, Nhịp tim lúc ngã, Trạng thái đã xử lý hay chưa).
+     + Lịch sử các lần nhịp tim hoặc SpO2 vượt ngưỡng nguy hiểm.
+   - Cho phép xóa lịch sử hoặc lọc theo loại cảnh báo.
+
+
+II. NHÓM CHỨC NĂNG MỞ RỘNG (NÂNG CAO ĐIỂM SỐ ĐỒ ÁN / BÁO CÁO MÔN HỌC)
+--------------------------------------------------------------------------------
+6. Cảnh báo Bất thường Sinh tồn Tự động (Vital Sign Anomaly Alert)
+   - Không chỉ báo khi ngã: Tự động báo động nếu người già không ngã nhưng nhịp tim tăng vọt (> 120 BPM khi đang nghỉ) hoặc tụt nhịp tim (< 50 BPM) hoặc SpO2 < 92%.
+   - Đặc biệt: Cảnh báo nguy kịch cấp độ 1 nếu "Phát hiện Té ngã + Nhịp tim/SpO2 bất thường ngay sau ngã" (nguy cơ đột quỵ / ngất xỉu).
+
+7. Biểu đồ Xu hướng Sức khỏe (Real-time & Historical Mini Charts)
+   - Biểu đồ đường (Line Chart) hiển thị biến thiên Nhịp tim (BPM) và Lực gia tốc (SMV) trong 60 giây gần nhất trực tiếp trên màn hình chính.
+
+8. Cài đặt Ngưỡng Cá nhân hóa & Kết nối (Settings & Calibration)
+   - Cài đặt số điện thoại khẩn cấp (SOS Phone Number).
+   - Tùy chỉnh ngưỡng nhạy báo ngã (ví dụ: chỉnh ngưỡng lực đập SMV từ 14 m/s² đến 20 m/s² tùy thể trạng người đeo).
+   - Cấu hình thông tin MQTT Broker (IP/Domain, Port, Topic, Device ID) ngay trên App mà không cần nạp lại code.
+   - Nút "Kiểm tra kết nối / Test còi Buzzer từ xa" (Bấm trên App để còi trên mạch ESP32-C3 kêu bíp nhằm tìm thiết bị hoặc kiểm tra đường truyền).
+
+
+III. CẤU TRÚC MÀN HÌNH ỨNG DỤNG ĐỀ XUẤT (3 MÀN HÌNH GỌN, ĐẸP, DỄ CODE)
+--------------------------------------------------------------------------------
+1. Màn hình 1 - TRANG CHỦ (Dashboard):
+   - Banner trạng thái lớn trên cùng (An toàn [Xanh] / Cảnh báo Ngã [Đỏ]).
+   - 4 thẻ thông số trực tuyến: Nhịp tim (BPM), SpO2 (%), Lực va chạm (m/s²), Độ tin cậy AI (%).
+   - Biểu đồ nhịp tim thời gian thực & Nút gọi khẩn cấp nhanh.
+
+2. Màn hình 2 - LỊCH SỬ CẢNH BÁO (History):
+   - Danh sách dòng thời gian (Timeline) các sự kiện té ngã & bất thường sức khỏe đã ghi nhận.
+
+3. Màn hình 3 - CÀI ĐẶT & THIẾT BỊ (Settings):
+   - Trạng thái kết nối MQTT & ESP32-C3, nút Test còi từ xa, cài đặt số điện thoại SOS và ngưỡng cảnh báo.
+================================================================================
