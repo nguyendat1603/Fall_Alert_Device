@@ -74,7 +74,11 @@ fun HomeTabScreen(
     // 3. DUAL-LAYER FUSION VERIFICATION STRIP
     DualLayerVerificationStrip(state = state)
 
-
+    // 4. LIVE DUAL-WAVEFORM CHART CARD
+    LiveWaveformChartCard(
+      state = state,
+      onSwitchWaveform = onSwitchWaveform
+    )
   }
 }
 
@@ -950,3 +954,259 @@ private fun LayerStatusBox(
   }
 }
 
+@Composable
+private fun LiveWaveformChartCard(
+  state: FallGuardUiState,
+  onSwitchWaveform: (WaveformMode) -> Unit
+) {
+  GlacierGlassCard(modifier = Modifier.fillMaxWidth()) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Column(modifier = Modifier.weight(1f)) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Box(
+            modifier =
+              Modifier.size(8.dp)
+                .background(
+                  if (state.waveformMode == WaveformMode.SMV) GlacierColors.Glacier500
+                  else GlacierColors.Rose500,
+                  CircleShape
+                )
+          )
+          Text(
+            text =
+              if (state.waveformMode == WaveformMode.SMV)
+                "Dạng sóng thời gian thực: Gia tốc SMV (m/s²)"
+              else "Dạng sóng thời gian thực: Xung quang học (PPG)",
+            fontSize = 11.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = GlacierColors.Slate900
+          )
+        }
+        Text(
+          text = "Tần số lấy mẫu: 100 Hz • Cửa sổ trượt 3.0s",
+          fontSize = 9.5.sp,
+          fontFamily = FontFamily.Monospace,
+          color = GlacierColors.Slate500
+        )
+      }
+
+      // Segmented Toggle
+      Row(
+        modifier =
+          Modifier.background(GlacierColors.Slate100, RoundedCornerShape(8.dp))
+            .border(1.dp, GlacierColors.Slate200, RoundedCornerShape(8.dp))
+            .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+      ) {
+        WaveformTogglePill(
+          label = "SMV",
+          selected = state.waveformMode == WaveformMode.SMV,
+          activeColor = GlacierColors.Glacier700,
+          onClick = { onSwitchWaveform(WaveformMode.SMV) }
+        )
+        WaveformTogglePill(
+          label = "PPG Tim",
+          selected = state.waveformMode == WaveformMode.PPG,
+          activeColor = GlacierColors.Rose600,
+          onClick = { onSwitchWaveform(WaveformMode.PPG) }
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(10.dp))
+
+    // Canvas Waveform Box
+    Box(
+      modifier =
+        Modifier.fillMaxWidth()
+          .height(135.dp)
+          .clip(RoundedCornerShape(12.dp))
+          .background(Color.White)
+          .border(1.dp, GlacierColors.Glacier200, RoundedCornerShape(12.dp))
+    ) {
+      val series =
+        if (state.waveformMode == WaveformMode.SMV) state.smvHistory else state.ppgHistory
+      val strokeColor =
+        when {
+          state.waveformMode == WaveformMode.PPG -> GlacierColors.Rose600
+          state.scenarioMode == ScenarioMode.REAL_FALL -> GlacierColors.Rose600
+          state.scenarioMode == ScenarioMode.FALSE_ALARM -> GlacierColors.Amber600
+          else -> GlacierColors.Glacier600
+        }
+
+      Canvas(modifier = Modifier.fillMaxSize().padding(6.dp)) {
+        val w = size.width
+        val h = size.height
+
+        // Draw subtle grid lines
+        val rows = 4
+        val cols = 6
+        for (r in 1 until rows) {
+          val y = h * r / rows
+          drawLine(
+            color = GlacierColors.Glacier100,
+            start = Offset(0f, y),
+            end = Offset(w, y),
+            strokeWidth = 1.dp.toPx()
+          )
+        }
+        for (c in 1 until cols) {
+          val x = w * c / cols
+          drawLine(
+            color = GlacierColors.Glacier100,
+            start = Offset(x, 0f),
+            end = Offset(x, h),
+            strokeWidth = 1.dp.toPx()
+          )
+        }
+
+        // Dashed Red Threshold Line for SMV mode
+        if (state.waveformMode == WaveformMode.SMV) {
+          val yThresh = (h - (state.smvThreshold / 26f) * h).coerceIn(8f, h - 8f)
+          drawLine(
+            color = GlacierColors.Red500,
+            start = Offset(0f, yThresh),
+            end = Offset(w, yThresh),
+            strokeWidth = 1.3.dp.toPx(),
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
+          )
+        }
+
+        if (series.size >= 2) {
+          val maxScale = if (state.waveformMode == WaveformMode.SMV) 26f else 100f
+          val stepX = w / (series.size - 1).toFloat()
+          val linePath = Path()
+          val fillPath = Path()
+
+          series.forEachIndexed { idx, value ->
+            val x = idx * stepX
+            val y = (h - (value / maxScale) * h).coerceIn(4f, h - 4f)
+            if (idx == 0) {
+              linePath.moveTo(x, y)
+              fillPath.moveTo(x, h)
+              fillPath.lineTo(x, y)
+            } else {
+              linePath.lineTo(x, y)
+              fillPath.lineTo(x, y)
+            }
+          }
+          fillPath.lineTo(w, h)
+          fillPath.close()
+
+          drawPath(
+            path = fillPath,
+            brush =
+              Brush.verticalGradient(
+                listOf(strokeColor.copy(alpha = 0.22f), strokeColor.copy(alpha = 0.0f))
+              )
+          )
+          drawPath(
+            path = linePath,
+            color = strokeColor,
+            style = Stroke(width = 2.4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+          )
+        }
+      }
+
+      // Threshold Label Pill inside chart
+      if (state.waveformMode == WaveformMode.SMV) {
+        Box(
+          modifier =
+            Modifier.align(Alignment.TopEnd)
+              .padding(top = 6.dp, end = 8.dp)
+              .background(Color.White.copy(alpha = 0.94f), RoundedCornerShape(5.dp))
+              .border(1.dp, GlacierColors.Red200, RoundedCornerShape(5.dp))
+              .padding(horizontal = 6.dp, vertical = 2.dp)
+        ) {
+          Text(
+            text = "Ngưỡng té: ${state.smvThreshold} m/s²",
+            fontSize = 8.5.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            color = GlacierColors.Red600
+          )
+        }
+      }
+
+      // Peak impact pill when falling
+      if (state.scenarioMode == ScenarioMode.REAL_FALL &&
+        state.waveformMode == WaveformMode.SMV) {
+        Box(
+          modifier =
+            Modifier.align(Alignment.TopStart)
+              .padding(top = 6.dp, start = 8.dp)
+              .background(GlacierColors.Red600, RoundedCornerShape(50))
+              .padding(horizontal = 8.dp, vertical = 2.dp)
+        ) {
+          Text(
+            text = "● Va đập đỉnh: ${state.smvMs2} m/s²",
+            fontSize = 8.5.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+          )
+        }
+      }
+    }
+
+    Spacer(modifier = Modifier.height(6.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+      Text(
+        text =
+          if (state.waveformMode == WaveformMode.SMV) "Tín hiệu lọc Kalman (MPU6050)"
+          else "Tín hiệu hồng ngoại MAX30102",
+        fontSize = 9.5.sp,
+        fontFamily = FontFamily.Monospace,
+        color = GlacierColors.Slate500
+      )
+      val currentWaveVal = state.smvHistory.lastOrNull() ?: state.smvMs2
+      Text(
+        text =
+          if (state.waveformMode == WaveformMode.SMV)
+            String.format(Locale.US, "Đỉnh hiện thời: %.2f m/s²", currentWaveVal)
+          else "Nhịp PPG: ${state.heartRateBpm} BPM",
+        fontSize = 9.5.sp,
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        color =
+          if (state.scenarioMode == ScenarioMode.REAL_FALL) GlacierColors.Red600
+          else GlacierColors.Glacier700
+      )
+    }
+  }
+}
+
+@Composable
+private fun WaveformTogglePill(
+  label: String,
+  selected: Boolean,
+  activeColor: Color,
+  onClick: () -> Unit
+) {
+  TactileBox(
+    onClick = onClick,
+    shape = RoundedCornerShape(6.dp),
+    backgroundColor = if (selected) Color.White else Color.Transparent,
+    border = if (selected) BorderStroke(1.dp, GlacierColors.Glacier200) else null,
+    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+  ) {
+    Text(
+      text = label,
+      fontSize = 9.5.sp,
+      fontFamily = FontFamily.Monospace,
+      fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+      color = if (selected) activeColor else GlacierColors.Slate500
+    )
+  }
+}
