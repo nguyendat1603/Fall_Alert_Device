@@ -202,7 +202,7 @@ fun HistoryTabScreen(
 
     // 4. Vertical Timeline Events List
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-      
+      filteredEvents.forEach { event -> TimelineEventCard(event = event) }
     }
   }
 }
@@ -274,3 +274,162 @@ private fun FilterChipButton(
   }
 }
 
+@Composable
+private fun TimelineEventCard(event: FallIncidentEvent) {
+  val (accentCol, iconBg, badgeBg, badgeBorder, badgeTextCol) =
+    when (event.category) {
+      IncidentCategory.SOS_SENT ->
+        TimelinePalette(
+          GlacierColors.Red500,
+          GlacierColors.Red100,
+          GlacierColors.Red50,
+          GlacierColors.Red200,
+          GlacierColors.Red700
+        )
+      IncidentCategory.CANCELLED ->
+        TimelinePalette(
+          GlacierColors.Amber500,
+          GlacierColors.Amber100,
+          GlacierColors.Emerald50,
+          GlacierColors.Emerald200,
+          GlacierColors.Emerald700
+        )
+      IncidentCategory.FILTERED ->
+        TimelinePalette(
+          GlacierColors.Amber500,
+          GlacierColors.Amber100,
+          GlacierColors.Amber50,
+          GlacierColors.Amber200,
+          GlacierColors.Amber700
+        )
+      IncidentCategory.CARDIO ->
+        TimelinePalette(
+          GlacierColors.Rose500,
+          GlacierColors.Rose100,
+          GlacierColors.Rose50,
+          GlacierColors.Rose200,
+          GlacierColors.Rose700
+        )
+    }
+
+  Surface(
+    modifier = Modifier.fillMaxWidth(),
+    shape = RoundedCornerShape(16.dp),
+    color = Color.White.copy(alpha = 0.90f),
+    border = BorderStroke(1.dp, GlacierColors.Glacier200),
+    shadowElevation = 3.dp
+  ) {
+    Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+      // Left Accent Bar
+      Box(modifier = Modifier.width(4.5.dp).fillMaxHeight().background(accentCol))
+
+      Column(modifier = Modifier.padding(12.dp).weight(1f)) {
+        // Top Row
+        Row(
+          modifier = Modifier.fillMaxWidth(),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.Top
+        ) {
+          Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Box(
+              modifier = Modifier.size(32.dp).background(iconBg, RoundedCornerShape(10.dp)),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(text = event.emoji, fontSize = 14.sp)
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = event.title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = GlacierColors.Slate900
+              )
+              Text(
+                text = event.timeAndLocation,
+                fontSize = 9.5.sp,
+                fontFamily = FontFamily.Monospace,
+                color = GlacierColors.Slate500
+              )
+            }
+          }
+
+          Box(
+            modifier =
+              Modifier.background(badgeBg, RoundedCornerShape(5.dp))
+                .border(1.dp, badgeBorder, RoundedCornerShape(5.dp))
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+          ) {
+            Text(
+              text = event.rightStatusBadge,
+              fontSize = 9.sp,
+              fontFamily = FontFamily.Monospace,
+              fontWeight = FontWeight.Bold,
+              color = badgeTextCol
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 4-Column Telemetry Snapshot Box
+        Row(
+          modifier =
+            Modifier.fillMaxWidth()
+              .clip(RoundedCornerShape(10.dp))
+              .background(GlacierColors.Slate50)
+              .border(1.dp, GlacierColors.Slate200, RoundedCornerShape(10.dp))
+              .padding(8.dp),
+          horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+          TelemetryMiniCol("LỰC SMV", event.smvText, GlacierColors.Red600)
+          TelemetryMiniCol("AI TINYML", event.aiText, GlacierColors.Red600)
+          TelemetryMiniCol("NHỊP TIM", event.hrText, GlacierColors.Slate800)
+          TelemetryMiniCol("SPO2", event.spo2Text, GlacierColors.Slate800)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Action Summary Footer
+        Text(
+          text = "⚡ Xử lý: ${event.actionSummary}",
+          fontSize = 10.5.sp,
+          fontWeight = FontWeight.Medium,
+          color = GlacierColors.Slate700,
+          lineHeight = 14.5.sp
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun TelemetryMiniCol(label: String, value: String, valueCol: Color) {
+  Column {
+    Text(
+      text = label,
+      fontSize = 8.5.sp,
+      fontFamily = FontFamily.Monospace,
+      color = GlacierColors.Slate500
+    )
+    Text(
+      text = value,
+      fontSize = 10.5.sp,
+      fontFamily = FontFamily.Monospace,
+      fontWeight = FontWeight.ExtraBold,
+      color = valueCol
+    )
+  }
+}
+
+private data class TimelinePalette(
+  val accentCol: Color,
+  val iconBg: Color,
+  val badgeBg: Color,
+  val badgeBorder: Color,
+  val badgeTextCol: Color
+)
