@@ -105,7 +105,7 @@ data class FallGuardUiState(
 
   // History Timeline
   val selectedHistoryFilter: HistoryFilter = HistoryFilter.ALL,
-  val historyEvents: List<FallIncidentEvent> = emptyList(),
+  val historyEvents: List<FallIncidentEvent> = initialHistoryEvents(),
 
   // Settings & Hardware Calibration
   val smvThreshold: Float = 16.0f,
@@ -123,3 +123,81 @@ data class FallGuardUiState(
   val toastMessage: String? = null
 )
 
+internal fun initialHistoryEvents(): List<FallIncidentEvent> =
+  listOf(
+    FallIncidentEvent(
+      id = 1L,
+      category = IncidentCategory.SOS_SENT,
+      emoji = "🚨",
+      title = "Phát hiện sự cố té ngã (Ngã ngửa đập sàn)",
+      tagBadge = "KHẨN CẤP",
+      timeAndLocation = "Hôm nay, 14:32:05 • Hành lang tầng 2",
+      rightStatusBadge = "ĐÃ GỬI SOS",
+      smvText = "24.8 m/s²",
+      aiText = "96.5%",
+      hrText = "118 BPM",
+      spo2Text = "95%",
+      actionSummary =
+        "Còi 85dB đã kêu • Đã gửi SMS khẩn cấp & Tọa độ GPS tới 0912.345.678 • Người thân đã xác nhận."
+    ),
+    FallIncidentEvent(
+      id = 2L,
+      category = IncidentCategory.CANCELLED,
+      emoji = "⚠️",
+      title = "Phát hiện sự cố té ngã (Trượt chân)",
+      tagBadge = "ĐÃ TẮT CÒI",
+      timeAndLocation = "Hôm qua, 15:20:18 • Nhà tắm",
+      rightStatusBadge = "TỰ TẮT (8s)",
+      smvText = "21.5 m/s²",
+      aiText = "91.2%",
+      hrText = "110 BPM",
+      spo2Text = "96%",
+      actionSummary =
+        "Người đeo bấm nút \"Tôi ổn (Tắt còi)\" sau 8 giây đếm ngược. Hệ thống không gửi tin báo khẩn SOS."
+    ),
+    FallIncidentEvent(
+      id = 3L,
+      category = IncidentCategory.FILTERED,
+      emoji = "🛡️",
+      title = "Ngồi phịch mạnh xuống ghế sofa",
+      tagBadge = "LỌC BÁO GIẢ",
+      timeAndLocation = "Hôm qua, 07:45:02 • Phòng khách",
+      rightStatusBadge = "CHẶN THÀNH CÔNG",
+      smvText = "17.2 m/s²",
+      aiText = "18.2%",
+      hrText = "88 BPM",
+      spo2Text = "98%",
+      actionSummary =
+        "Lực va chạm 17.2 m/s² vượt ngưỡng nhưng AI TinyML nhận diện tư thế ngồi (18.2% fall). Còi buzzer không hú."
+    ),
+    FallIncidentEvent(
+      id = 4L,
+      category = IncidentCategory.CARDIO,
+      emoji = "❤️",
+      title = "Nhịp tim tăng nhanh lúc nghỉ ngơi",
+      tagBadge = "SINH HIỆU",
+      timeAndLocation = "20/11, 21:10:48 • Phòng ngủ",
+      rightStatusBadge = "132 BPM",
+      smvText = "9.8 m/s²",
+      aiText = "1.4%",
+      hrText = "132 BPM",
+      spo2Text = "97%",
+      actionSummary =
+        "Phát hiện triệu chứng hồi hộp, SpO2 duy trì 97%. Người dùng đã ngồi nghỉ 15 phút và nhịp tim trở lại 82 BPM."
+    ),
+    FallIncidentEvent(
+      id = 5L,
+      category = IncidentCategory.SOS_SENT,
+      emoji = "🚨",
+      title = "Té ngã chúi về trước chống cổ tay",
+      tagBadge = "KHẨN CẤP",
+      timeAndLocation = "18/11, 06:40:11 • Sân trước",
+      rightStatusBadge = "ĐÃ GỬI SOS",
+      smvText = "26.4 m/s²",
+      aiText = "98.1%",
+      hrText = "130 BPM",
+      spo2Text = "92%",
+      actionSummary =
+        "Còi hú 85dB tại chỗ. Đã gửi tọa độ GPS cấp cứu và người nhà tiếp cận hỗ trợ kịp thời sau 4 phút."
+    )
+  )
