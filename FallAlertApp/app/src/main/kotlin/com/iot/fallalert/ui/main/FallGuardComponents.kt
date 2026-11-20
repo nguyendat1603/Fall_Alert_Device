@@ -120,3 +120,176 @@ fun GlacierGlassCard(
   }
 }
 
+@Composable
+fun FallGuardTopHeader(systemClock: String, modifier: Modifier = Modifier) {
+  val infiniteTransition = rememberInfiniteTransition(label = "onlinePulse")
+  val pulseAlpha by
+    infiniteTransition.animateFloat(
+      initialValue = 0.35f,
+      targetValue = 1f,
+      animationSpec =
+        infiniteRepeatable(tween(900), repeatMode = RepeatMode.Reverse),
+      label = "pulseAlpha"
+    )
+
+  Surface(
+    modifier = modifier.fillMaxWidth(),
+    color = GlacierColors.Glacier50.copy(alpha = 0.94f),
+    shadowElevation = 3.dp,
+    border = BorderStroke(0.5.dp, Color.White)
+  ) {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+      // Android Status Bar Emulation Row
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = systemClock,
+          fontSize = 11.sp,
+          fontWeight = FontWeight.Bold,
+          fontFamily = FontFamily.Monospace,
+          color = GlacierColors.Slate700
+        )
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+          Box(
+            modifier =
+              Modifier.background(GlacierColors.Glacier100, RoundedCornerShape(4.dp))
+                .border(1.dp, GlacierColors.Glacier300, RoundedCornerShape(4.dp))
+                .padding(horizontal = 5.dp, vertical = 1.dp)
+          ) {
+            Text(
+              text = "5G IoT",
+              fontSize = 9.sp,
+              fontFamily = FontFamily.Monospace,
+              fontWeight = FontWeight.Bold,
+              color = GlacierColors.Glacier700
+            )
+          }
+          Text(
+            text = "📶 98%",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = GlacierColors.Slate700
+          )
+        }
+      }
+
+      // App Brand & ESP32-C3 Online Pill
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+          // Brand Icon Box with green online dot
+          Box(contentAlignment = Alignment.TopEnd) {
+            Box(
+              modifier =
+                Modifier.size(38.dp)
+                  .background(
+                    brush =
+                      Brush.linearGradient(
+                        listOf(GlacierColors.Glacier100, GlacierColors.Glacier200)
+                      ),
+                    shape = RoundedCornerShape(12.dp)
+                  )
+                  .border(1.dp, GlacierColors.Glacier300, RoundedCornerShape(12.dp)),
+              contentAlignment = Alignment.Center
+            ) {
+              Text(text = "⌚", fontSize = 18.sp)
+            }
+            Box(
+              modifier =
+                Modifier.offset(x = 2.dp, y = (-2).dp)
+                  .size(10.dp)
+                  .background(GlacierColors.Emerald500.copy(alpha = pulseAlpha), CircleShape)
+                  .border(1.5.dp, Color.White, CircleShape)
+            )
+          }
+
+          Column {
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+              Text(
+                text = "FallGuard",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = GlacierColors.Slate900
+              )
+              Box(
+                modifier =
+                  Modifier.background(GlacierColors.Glacier500, RoundedCornerShape(5.dp))
+                    .padding(horizontal = 6.dp, vertical = 1.dp)
+              ) {
+                Text(
+                  text = "C3",
+                  fontSize = 10.sp,
+                  fontFamily = FontFamily.Monospace,
+                  fontWeight = FontWeight.Bold,
+                  color = Color.White
+                )
+              }
+            }
+            Row(
+              verticalAlignment = Alignment.CenterVertically,
+              horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+              Box(
+                modifier = Modifier.size(6.dp).background(GlacierColors.Emerald500, CircleShape)
+              )
+              Text(
+                text = "ESP32-C3 SuperMini • BLE 5.0",
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Monospace,
+                color = GlacierColors.Slate500
+              )
+            }
+          }
+        }
+
+        // Right Status Pill
+        Column(horizontalAlignment = Alignment.End) {
+          Row(
+            modifier =
+              Modifier.background(GlacierColors.Emerald50, RoundedCornerShape(50))
+                .border(1.dp, GlacierColors.Emerald300, RoundedCornerShape(50))
+                .padding(horizontal = 9.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+          ) {
+            Box(
+              modifier =
+                Modifier.size(7.dp)
+                  .background(GlacierColors.Emerald500.copy(alpha = pulseAlpha), CircleShape)
+            )
+            Text(
+              text = "Trực tuyến",
+              fontSize = 10.sp,
+              fontFamily = FontFamily.Monospace,
+              fontWeight = FontWeight.Bold,
+              color = GlacierColors.Emerald700
+            )
+          }
+          Spacer(modifier = Modifier.height(2.dp))
+          Text(
+            text = "⌚ Đang đeo tay • 42ms",
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Medium,
+            color = GlacierColors.Slate500
+          )
+        }
+      }
+    }
+  }
+}
+
