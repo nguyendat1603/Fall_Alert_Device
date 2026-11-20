@@ -431,3 +431,139 @@ private fun SimulatorDockButton(
   }
 }
 
+@Composable
+fun GlacierBottomNavBar(
+  currentTab: AppTab,
+  historyCount: Int,
+  onSelectTab: (AppTab) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  Surface(
+    modifier = modifier.fillMaxWidth(),
+    color = Color.White.copy(alpha = 0.95f),
+    shadowElevation = 12.dp,
+    border = BorderStroke(0.5.dp, GlacierColors.Glacier200)
+  ) {
+    Row(
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+      horizontalArrangement = Arrangement.SpaceAround,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      BottomNavItem(
+        icon = "🏠",
+        label = "Trang chủ",
+        selected = currentTab == AppTab.HOME,
+        badgeCount = null,
+        onClick = { onSelectTab(AppTab.HOME) }
+      )
+      BottomNavItem(
+        icon = "🕒",
+        label = "Lịch sử",
+        selected = currentTab == AppTab.HISTORY,
+        badgeCount = historyCount,
+        onClick = { onSelectTab(AppTab.HISTORY) }
+      )
+      BottomNavItem(
+        icon = "⚙️",
+        label = "Cài đặt",
+        selected = currentTab == AppTab.SETTINGS,
+        badgeCount = null,
+        onClick = { onSelectTab(AppTab.SETTINGS) }
+      )
+    }
+  }
+}
+
+@Composable
+private fun BottomNavItem(
+  icon: String,
+  label: String,
+  selected: Boolean,
+  badgeCount: Int?,
+  onClick: () -> Unit
+) {
+  val textColor = if (selected) GlacierColors.Glacier600 else GlacierColors.Slate400
+  val bgPill =
+    if (selected) GlacierColors.Glacier100.copy(alpha = 0.75f) else Color.Transparent
+
+  TactileBox(
+    onClick = onClick,
+    shape = RoundedCornerShape(14.dp),
+    backgroundColor = bgPill,
+    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 5.dp)
+  ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+      Box(contentAlignment = Alignment.TopEnd) {
+        Text(text = icon, fontSize = 16.sp)
+        if (badgeCount != null && badgeCount > 0) {
+          Box(
+            modifier =
+              Modifier.offset(x = 8.dp, y = (-3).dp)
+                .background(GlacierColors.Red600, CircleShape)
+                .padding(horizontal = 4.dp, vertical = 0.5.dp)
+          ) {
+            Text(
+              text = badgeCount.toString(),
+              fontSize = 8.sp,
+              fontFamily = FontFamily.Monospace,
+              fontWeight = FontWeight.Bold,
+              color = Color.White
+            )
+          }
+        }
+      }
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = label,
+        fontSize = 10.5.sp,
+        fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
+        color = textColor
+      )
+    }
+  }
+}
+
+@Composable
+fun GlacierToastOverlay(toastMessage: String?, modifier: Modifier = Modifier) {
+  AnimatedVisibility(
+    visible = toastMessage != null,
+    enter = slideInVertically(initialOffsetY = { -it - 40 }) + fadeIn(),
+    exit = slideOutVertically(targetOffsetY = { -it - 40 }) + fadeOut(),
+    modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)
+  ) {
+    Surface(
+      shape = RoundedCornerShape(14.dp),
+      color = Color.White.copy(alpha = 0.97f),
+      shadowElevation = 12.dp,
+      border = BorderStroke(1.dp, GlacierColors.Glacier300)
+    ) {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Text(
+          text = toastMessage ?: "",
+          fontSize = 11.5.sp,
+          fontWeight = FontWeight.SemiBold,
+          color = GlacierColors.Slate800,
+          modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Box(
+          modifier =
+            Modifier.background(GlacierColors.Glacier100, RoundedCornerShape(6.dp))
+              .padding(horizontal = 7.dp, vertical = 3.dp)
+        ) {
+          Text(
+            text = "ESP32 OK",
+            fontSize = 9.5.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold,
+            color = GlacierColors.Glacier700
+          )
+        }
+      }
+    }
+  }
+}
