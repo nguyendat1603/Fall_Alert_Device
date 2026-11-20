@@ -293,3 +293,141 @@ fun FallGuardTopHeader(systemClock: String, modifier: Modifier = Modifier) {
   }
 }
 
+@Composable
+fun SimulatorFloatingDock(
+  currentScenario: ScenarioMode,
+  onSelectScenario: (String) -> Unit,
+  modifier: Modifier = Modifier
+) {
+  Surface(
+    modifier =
+      modifier
+        .fillMaxWidth()
+        .padding(horizontal = 12.dp)
+        .shadow(
+          elevation = 10.dp,
+          shape = RoundedCornerShape(18.dp),
+          ambientColor = GlacierColors.Glacier400.copy(alpha = 0.45f)
+        ),
+    shape = RoundedCornerShape(18.dp),
+    color = Color.White.copy(alpha = 0.94f),
+    border = BorderStroke(1.dp, GlacierColors.Glacier200)
+  ) {
+    Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Row(
+          verticalAlignment = Alignment.CenterVertically,
+          horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+          Box(modifier = Modifier.size(7.dp).background(GlacierColors.Glacier500, CircleShape))
+          Text(
+            text = "ESP32-C3 IOT TEST SIMULATOR",
+            fontSize = 9.sp,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.ExtraBold,
+            color = GlacierColors.Slate700
+          )
+        }
+        Text(
+          text = "Bấm thử nghiệm tương tác",
+          fontSize = 9.sp,
+          fontFamily = FontFamily.Monospace,
+          color = GlacierColors.Slate500
+        )
+      }
+
+      Spacer(modifier = Modifier.height(5.dp))
+
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+      ) {
+        // 1. Safe
+        SimulatorDockButton(
+          label = "✅ An toàn",
+          bgColor = GlacierColors.Emerald50,
+          borderColor = GlacierColors.Emerald200,
+          textColor = GlacierColors.Emerald700,
+          isSelected = currentScenario == ScenarioMode.SAFE,
+          onClick = { onSelectScenario("safe") },
+          modifier = Modifier.weight(1f)
+        )
+        // 2. False Alarm
+        SimulatorDockButton(
+          label = "🛡️ Báo giả",
+          bgColor = GlacierColors.Amber50,
+          borderColor = GlacierColors.Amber200,
+          textColor = GlacierColors.Amber700,
+          isSelected = currentScenario == ScenarioMode.FALSE_ALARM,
+          onClick = { onSelectScenario("false_alarm") },
+          modifier = Modifier.weight(1f)
+        )
+        // 3. Real Fall
+        SimulatorDockButton(
+          label = "🚨 Ngã thật",
+          bgColor = GlacierColors.Red600,
+          borderColor = GlacierColors.Red700,
+          textColor = Color.White,
+          isSelected = currentScenario == ScenarioMode.REAL_FALL,
+          onClick = { onSelectScenario("real_fall") },
+          modifier = Modifier.weight(1.08f)
+        )
+        // 4. Cardio
+        SimulatorDockButton(
+          label = "❤️ Tim/SpO2",
+          bgColor = GlacierColors.Rose50,
+          borderColor = GlacierColors.Rose200,
+          textColor = GlacierColors.Rose700,
+          isSelected = currentScenario == ScenarioMode.CARDIO,
+          onClick = { onSelectScenario("cardio") },
+          modifier = Modifier.weight(1.05f)
+        )
+        // 5. Random
+        SimulatorDockButton(
+          label = "🎲 Random",
+          bgColor = GlacierColors.Glacier100,
+          borderColor = GlacierColors.Glacier300,
+          textColor = GlacierColors.Glacier800,
+          isSelected = false,
+          onClick = { onSelectScenario("random") },
+          modifier = Modifier.weight(1f)
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun SimulatorDockButton(
+  label: String,
+  bgColor: Color,
+  borderColor: Color,
+  textColor: Color,
+  isSelected: Boolean,
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier
+) {
+  TactileBox(
+    onClick = onClick,
+    modifier = modifier,
+    shape = RoundedCornerShape(9.dp),
+    backgroundColor = bgColor,
+    border = BorderStroke(if (isSelected) 1.8.dp else 1.dp, borderColor),
+    contentPadding = PaddingValues(horizontal = 3.dp, vertical = 7.dp)
+  ) {
+    Text(
+      text = label,
+      fontSize = 9.5.sp,
+      fontWeight = FontWeight.Bold,
+      color = textColor,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      textAlign = TextAlign.Center
+    )
+  }
+}
+
