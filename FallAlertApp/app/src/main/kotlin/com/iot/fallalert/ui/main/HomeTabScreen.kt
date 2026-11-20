@@ -71,6 +71,9 @@ fun HomeTabScreen(
     // 2. REAL-TIME 2x2 BENTO SENSOR GRID
     BentoSensorGrid(state = state)
 
+    // 3. DUAL-LAYER FUSION VERIFICATION STRIP
+    DualLayerVerificationStrip(state = state)
+
 
   }
 }
@@ -814,6 +817,135 @@ private fun BentoSensorGrid(state: FallGuardUiState) {
           )
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun DualLayerVerificationStrip(state: FallGuardUiState) {
+  GlacierGlassCard(modifier = Modifier.fillMaxWidth(), contentPadding = PaddingValues(12.dp)) {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.SpaceBetween,
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Text(
+        text = "KIỂM CHỨNG XÁC THỰC 2 LỚP (DUAL-LAYER)",
+        fontSize = 10.sp,
+        fontWeight = FontWeight.ExtraBold,
+        color = GlacierColors.Slate700
+      )
+
+      val (buzzerBg, buzzerTextCol) =
+        when {
+          state.isBuzzerAlerting -> GlacierColors.Red600 to Color.White
+          state.scenarioMode == ScenarioMode.FALSE_ALARM ->
+            GlacierColors.Amber50 to GlacierColors.Amber800
+          else -> GlacierColors.Slate100 to GlacierColors.Slate600
+        }
+
+      Box(
+        modifier =
+          Modifier.background(buzzerBg, RoundedCornerShape(6.dp))
+            .padding(horizontal = 7.dp, vertical = 3.dp)
+      ) {
+        Text(
+          text = state.buzzerHardwareState,
+          fontSize = 9.sp,
+          fontFamily = FontFamily.Monospace,
+          fontWeight = FontWeight.Bold,
+          color = buzzerTextCol
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+      // Layer 1 Box
+      LayerStatusBox(
+        title = state.layer1Text,
+        status = state.layer1Status,
+        isPassed = state.layer1Passed,
+        isWarning = false,
+        modifier = Modifier.weight(1f)
+      )
+      // Layer 2 Box
+      LayerStatusBox(
+        title = state.layer2Text,
+        status = state.layer2Status,
+        isPassed = state.layer2Passed,
+        isWarning = state.layer2Warning,
+        modifier = Modifier.weight(1f)
+      )
+    }
+  }
+}
+
+@Composable
+private fun LayerStatusBox(
+  title: String,
+  status: String,
+  isPassed: Boolean,
+  isWarning: Boolean,
+  modifier: Modifier = Modifier
+) {
+  val bg =
+    when {
+      isPassed -> GlacierColors.Red50
+      isWarning -> GlacierColors.Amber50
+      else -> GlacierColors.Slate50
+    }
+  val border =
+    when {
+      isPassed -> GlacierColors.Red300
+      isWarning -> GlacierColors.Amber300
+      else -> GlacierColors.Slate200
+    }
+
+  Row(
+    modifier =
+      modifier
+        .background(bg, RoundedCornerShape(10.dp))
+        .border(1.dp, border, RoundedCornerShape(10.dp))
+        .padding(horizontal = 8.dp, vertical = 7.dp),
+    horizontalArrangement = Arrangement.SpaceBetween,
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Text(
+      text = title,
+      fontSize = 10.sp,
+      fontFamily = FontFamily.Monospace,
+      fontWeight = FontWeight.SemiBold,
+      color = GlacierColors.Slate800,
+      maxLines = 1,
+      overflow = TextOverflow.Ellipsis,
+      modifier = Modifier.weight(1f)
+    )
+    Spacer(modifier = Modifier.width(4.dp))
+    Box(
+      modifier =
+        Modifier.background(
+            if (isPassed) GlacierColors.Red600 else Color.Transparent,
+            RoundedCornerShape(4.dp)
+          )
+          .padding(horizontal = 4.dp, vertical = 1.dp)
+    ) {
+      Text(
+        text = status,
+        fontSize = 9.sp,
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Bold,
+        color =
+          when {
+            isPassed -> Color.White
+            isWarning -> GlacierColors.Amber700
+            else -> GlacierColors.Slate500
+          }
+      )
     }
   }
 }
